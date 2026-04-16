@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title id="pgTitle">your desktop ✦</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Syne:wght@700;800&display=swap"
+    rel="stylesheet" />
+
+  <!-- ============================================================
+  CUSTOMIZE — edit CFG only
+  ============================================================ -->
+  <script>
+    const CFG = {
+      name: "Francis Paul",
+      nameKanji: "",
+      tagline: "passionate in journalism & storytelling",
+      location: "Kuala Lumpur, Malaysia",
+      email: "francis.pn.29757@gmail.com",
+      avatar: "",
+      avatarEmoji: "🖊️",
+      desktopTitle: "francis's desktop",
+
+      aboutBio: `hi! i'm <strong>Francis Paul Narcis</strong> — I'm currently studying Computer Science in Data Science at Monash University Malaysia, and I'm deeply passionate about journalism, storytelling, and community building.<br><br>I also dedicate a lot of my time to youth leadership and mentoring, serving as Interim Leader for the 46th Petaling Perdana Scout Troop and volunteering at the Church of the Assumption.`,
+      edu: "Bachelors of Computer Science in Data Science",
+      eduNote: "(2025 - Present) Monash University Malaysia",
+      interests: ["Actively working on research projects", "Writing a theological book", "Game development", "Journalism and storytelling"],
+      langs: ["English (fluent)", "Malay (fluent)", "Chinese Mandarin (basic)", "Hokkien (basic)"],
+
+      links: [
+        { label: "linkedin", emoji: "💼", url: "https://linkedin.com/" },
+        { label: "github", emoji: "⌥", url: "https://github.com/" },
+        { label: "email me", emoji: "✉️", url: "mailto:francis.pn.29757@gmail.com" },
+      ],
+
+      tools: ["Event Photography", "Photo Editing", "Research Skills", "Writing", "Journalism"],
+      Skills: ["Data Analytics", "Python", "Public Speaking", "Mentorship"],
+
+      projects: [
+        { title: "MCKL Student Affairs", img: "", desc: "Temporary staff; managed social media and assisted in developing new systems for student leader growth and event administration.", url: "#", btn: "Jan - May 2025" },
+        { title: "MUSA IT Secretary", img: "", desc: "School of IT Secretary at Monash University Student Association. Handled event administration and a coding competition.", url: "#", btn: "Jan 2026 - Present" },
+        { title: "Scout Interim Leader", img: "", desc: "Trained multiple King Scouts and renewed youth training systems for the 46th Petaling Perdana Scout Troop.", url: "#", btn: "2023 - Present" },
+      ],
+
+      gallery: [
+        { img: "", caption: "ASEAN Sustainability SDG National Winner 2023" },
+        { img: "", caption: "WOSM Safe From Harm Certified" },
+        { img: "", caption: "Event Photography showcase" },
+      ],
+
+      faq: [
+        { q: "What is your main field of study?", a: "I'm currently pursuing Data Science at Monash University Malaysia." },
+        { q: "Are you involved in any extracurriculars?", a: "Yes! Quite a lot. I'm the IT Secretary at Monash, an Interim Scout Leader, and a catechism teacher." },
+        { q: "What are your core interests?", a: "Outside of studying, I'm passionate about journalism, theological writing, and game development." },
+      ],
+
+      articles: [
+        { title: "My test thoughts", img: "", desc: "A brief summary of my most recent article, exploring topics on leadership, storytelling, and community.", url: "https://substack.com/@francispn", btn: "read more" },
+        { title: "Theological Explorations", img: "", desc: "A recap of my recent notes on the intersection of faith and modern youth development.", url: "https://substack.com/@francispn", btn: "read more" },
+        { title: "Journalism highlights", img: "", desc: "A deep dive into some storytelling exercises and local event administration.", url: "https://substack.com/@francispn", btn: "read more" }
+      ],
+
+      /* Provide filenames here for sound effects (e.g., 'hover.mp3' from zapsplat inside this folder) */
+      sfxHover: "",
+      sfxClick: "",
+
+      /* Sharyap relies heavily on orange as an accent color for links/buttons */
+      accent: "#f5a11c",       
+      accentDk: "#d18615",
+      /* Soft sky blue background to mimic Sharyap's home screen */
+      desktopBg: "#e0f2fe",    
+      desktopBgDk: "#0f172a",
+      /* Pure white background for modern minimalist window interiors */
+      winBg: "#ffffff",
+      winBgDk: "#1e293b",
+      /* Removing taskbar colors as Sharyap doesn't use a taskbar */
+    };
+  </script>
+
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --acc: #f5a11c;
+      --desk: #e0f2fe;        /* The desktop base background */
+      --deskWave: #bae6fd;    /* The color of the animated waves! */
+      --winBg: #ffffff;
+      /* Dark gray text to match the clean aesthetic */
+      --txt: #333333;
+      --txt2: #6b7280;
+      /* Sharyap uses sharp 1px borders of a medium/dark gray */
+      --border: #4b4b4b;
+      --rad: 12px;     /* For the bottom window radius */
+      --radSm: 6px;
+      --titleH: 42px;  /* Taller title bar like sharyap */
+      
+      /* Detailed comment: Sharyap uses sans-serif for reading text, and monospace for top window bars */
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --fontHd: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    [data-theme="dark"] {
+      --desk: #0f172a;
+      --deskWave: #1e293b;
+      --winBg: #121212;
+      --txt: #e8eacc;
+      --txt2: #8a9a80;
+      --border: #ffffff;
+      --taskbar: #121212;
+    }
+
+    /* ── controls ── */
+    .topCtrl {
+      position: fixed;
+      top: 15px; left: 15px; z-index: 500;
+      display: flex; gap: 10px;
+    }
+    
+    .topBtn {
+      background: none; border: none; cursor: pointer;
+      font-size: 1.5rem; transition: transform .2s;
+      outline: none;
+    }
+    .topBtn:hover { transform: scale(1.1) }
+
+    #waveWrap {
+      position: absolute;
+      bottom: -2px; left: 0; width: 200vw; height: 170px;
+      display: flex;
+      pointer-events: none; z-index: 1;
+      /* Significantly slowed down the animation duration to 80s */
+      animation: waveFlow 80s linear infinite;
+    }
+    #waveWrap svg {
+      width: 50%; height: 100%; display: block;
+      fill: var(--deskWave); transition: fill .35s;
+      /* Rotate so the peaks face up exactly like Sharyap! */
+      transform: rotate(180deg);
+    }
+    @keyframes waveFlow {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); } 
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--font);
+      color: var(--txt)
+    }
+
+    body {
+      background: var(--desk);
+      transition: background .35s;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── taskbar removed ── 
+       Sharyap copies typically rely strictly on desktop icons, so we omit the taskbar styling.
+    */
+    .themeBtn {
+      position: fixed;
+      top: 15px; left: 15px; z-index: 500;
+      background: none; border: none; cursor: pointer;
+      font-size: 1.5rem; transition: transform .2s;
+    }
+    .themeBtn:hover { transform: scale(1.1) }
+
+    /* ── window ────────────────────────────────────────── */
+    .win {
+      position: fixed;
+      z-index: 10;
+      background: var(--winBg);
+      /* Sharyap windows have a completely solid 2px black/dark gray border, and soft drop shadow */
+      border: 2px solid var(--border);
+      
+      /* User requested to round all corners equally */
+      border-radius: 14px;
+      overflow: hidden;
+      min-width: 320px;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      transition: background .35s, border-color .35s;
+      /* Box shadow gives it that floating feel above the background */
+      box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+    }
+
+    .win.hidden {
+      display: none !important
+    }
+
+    .win.focused {
+      z-index: 20;
+    }
+
+    .winBar {
+      height: var(--titleH);
+      flex-shrink: 0;
+      /* Sharyap title bars are distinctly dark gray regardless of the mode! */
+      background: #4b4b4b;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      justify-content: space-between;
+      cursor: grab;
+    }
+
+    .winBar:active {
+      cursor: grabbing
+    }
+
+    /* Replacing standard window controls with a single "[x]" button per user request */
+    .wClose {
+      background: none;
+      border: none;
+      color: white; /* Sharyap title buttons are white */
+      font-family: var(--fontHd);
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .15s;
+    }
+
+    .wClose:hover {
+      transform: scale(1.1);
+      color: var(--acc); /* turns orange on hover! */
+    }
+
+    .winTitle {
+      font-family: var(--fontHd);
+      font-weight: 500;
+      font-size: .95rem;
+      /* Sharyap title is always white against the dark gray bar */
+      color: white;
+      pointer-events: none;
+      text-transform: lowercase;
+    }
+
+    .resH {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 16px;
+      height: 16px;
+      cursor: se-resize;
+      z-index: 2;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: 3px;
+    }
+
+    .resH::after {
+      content: '';
+      display: block;
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid var(--txt2);
+      border-bottom: 2px solid var(--txt2);
+      border-radius: 2px;
+      opacity: .35;
+    }
+
+    .winBody {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 16px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .winBody::-webkit-scrollbar {
+      width: 4px
+    }
+
+    .winBody::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px
+    }
+
+    /* ── content atoms ─────────────────────────────────── */
+    .sl {
+      font-size: .63rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--acc);
+      display: block;
+      margin-bottom: 7px
+    }
+
+    .bigN {
+      font-family: var(--fontHd);
+      font-size: 1.6rem;
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--txt);
+      margin-bottom: 3px
+    }
+
+    .subT {
+      font-size: .85rem;
+      color: var(--txt2);
+      font-weight: 600;
+      margin-bottom: 3px
+    }
+
+    .avi {
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--acc) 18%, var(--winBg));
+      border: 2.5px solid var(--acc);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .avi img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover
+    }
+
+    .bioP {
+      font-size: .83rem;
+      line-height: 1.8;
+      color: var(--txt2)
+    }
+
+    .bioP strong {
+      color: var(--txt)
+    }
+
+    .tagRow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 7px
+    }
+
+    .tag {
+      background: color-mix(in srgb, var(--acc) 13%, transparent);
+      color: var(--acc);
+      border-radius: 20px;
+      padding: 3px 9px;
+      font-size: .73rem;
+      font-weight: 700
+    }
+
+    hr {
+      border: none;
+      border-top: 1.5px solid var(--border);
+      margin: 12px 0
+    }
+
+    .btnSm {
+      display: inline-block;
+      background: var(--acc);
+      color: #fff;
+      padding: 7px 14px;
+      border-radius: var(--radSm);
+      font-size: .77rem;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      font-family: var(--font);
+      transition: filter .15s;
+    }
+
+    .btnSm:hover {
+      filter: brightness(1.08)
+    }
+
+    /* links */
+    .lGrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px
+    }
+
+    .lBtn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: color-mix(in srgb, var(--acc) 7%, var(--winBg));
+      border: 1.5px solid var(--border);
+      border-radius: var(--radSm);
+      padding: 8px 11px;
+      text-decoration: none;
+      color: var(--txt);
+      font-size: .8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color .2s, background .2s, transform .15s;
+    }
+
+    .lBtn:hover {
+      border-color: var(--acc);
+      transform: translateY(-1px);
+      background: color-mix(in srgb, var(--acc) 13%, var(--winBg))
+    }
+
+    .lIco {
+      font-size: .85rem;
+      color: var(--acc);
+      width: 16px;
+      text-align: center;
+      font-weight: 900
+    }
+
+    /* pills */
+    .pRow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 9px
+    }
+
+    .pill {
+      background: var(--winBg);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: .74rem;
+      font-weight: 700;
+      color: var(--txt2);
+      transition: background .35s, border-color .35s
+    }
+
+    /* gallery */
+    .gGrid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px
+    }
+
+    .gItem {
+      aspect-ratio: 1;
+      border-radius: var(--radSm);
+      overflow: hidden;
+      cursor: pointer;
+      background: color-mix(in srgb, var(--acc) 12%, var(--winBg));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      position: relative;
+      border: 1.5px solid var(--border);
+    }
+
+    .gItem img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .25s
+    }
+
+    .gItem:hover img {
+      transform: scale(1.06)
+    }
+
+    .gCap {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: flex-end;
+      background: linear-gradient(to top, rgba(0, 0, 0, .62) 0%, transparent 55%);
+      padding: 5px;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    .gItem:hover .gCap {
+      opacity: 1
+    }
+
+    .gCap span {
+      color: #fff;
+      font-size: .62rem;
+      font-weight: 700;
+      line-height: 1.25
+    }
+
+    /* project */
+    .pCard {
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1.5px solid var(--border)
+    }
+
+    .pCard:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0
+    }
+
+    .pImg {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border-radius: var(--radSm);
+      overflow: hidden;
+      background: color-mix(in srgb, var(--acc) 10%, var(--winBg));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 9px;
+    }
+
+    .pImg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover
+    }
+
+    .pTit {
+      font-family: var(--fontHd);
+      font-size: .98rem;
+      font-weight: 700;
+      color: var(--txt);
+      margin-bottom: 4px
+    }
+
+    .pDsc {
+      font-size: .8rem;
+      color: var(--txt2);
+      line-height: 1.6;
+      margin-bottom: 9px
+    }
+
+    /* faq */
+    .fItem {
+      margin-bottom: 7px
+    }
+
+    .fQ {
+      width: 100%;
+      text-align: left;
+      background: color-mix(in srgb, var(--acc) 7%, var(--winBg));
+      border: 1.5px solid var(--border);
+      border-radius: var(--radSm);
+      padding: 9px 12px;
+      cursor: pointer;
+      font-family: var(--font);
+      font-weight: 700;
+      font-size: .8rem;
+      color: var(--txt);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: border-color .2s;
+    }
+
+    .fQ:hover,
+    .fQ.open {
+      border-color: var(--acc)
+    }
+
+    .fA {
+      max-height: 0;
+      overflow: hidden;
+      padding: 0 12px;
+      font-size: .78rem;
+      color: var(--txt2);
+      line-height: 1.65;
+      background: color-mix(in srgb, var(--acc) 4%, var(--winBg));
+      border: 1.5px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--radSm) var(--radSm);
+      transition: max-height .3s, padding .25s;
+    }
+
+    .fA.open {
+      max-height: 120px;
+      padding: 9px 12px
+    }
+
+    .fArr {
+      transition: transform .25s;
+      color: var(--acc);
+      font-weight: 900
+    }
+
+    .fQ.open .fArr {
+      transform: rotate(45deg)
+    }
+
+    /* contact */
+    .ctBox {
+      text-align: center;
+      padding: 8px 0
+    }
+
+    .ctIcon {
+      font-size: 2.4rem;
+      display: block;
+      margin-bottom: 10px
+    }
+
+    .mBtn {
+      display: inline-block;
+      background: var(--acc);
+      color: #fff;
+      padding: 9px 20px;
+      border-radius: var(--radSm);
+      font-weight: 700;
+      font-size: .82rem;
+      text-decoration: none;
+      margin-top: 12px;
+      transition: filter .15s, transform .15s;
+    }
+
+    .mBtn:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px)
+    }
+
+    /* downloads */
+    .dlG {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px
+    }
+
+    .dlC {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radSm);
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: border-color .2s, transform .15s;
+    }
+
+    .dlC:hover {
+      border-color: var(--acc);
+      transform: translateY(-2px)
+    }
+
+    .dlT {
+      width: 100%;
+      aspect-ratio: 1;
+      background: color-mix(in srgb, var(--acc) 12%, var(--winBg));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.9rem;
+      overflow: hidden;
+    }
+
+    .dlT img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover
+    }
+
+    .dlI {
+      padding: 7px 9px
+    }
+
+    .dlNm {
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--txt)
+    }
+
+    .dlTy {
+      font-size: .7rem;
+      color: var(--txt2)
+    }
+
+    /* ── desktop icon layer ───────────────────────────── */
+    #desk {
+      position: fixed;
+      inset: 0;
+      bottom: 50px;
+      z-index: 1;
+      pointer-events: none
+    }
+
+    .dIcon {
+      position: absolute;
+      pointer-events: all;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 7px;
+      border-radius: 10px;
+      width: 70px;
+      text-align: center;
+      transition: background .15s;
+    }
+
+    .dIcon:hover {
+      background: color-mix(in srgb, var(--acc) 20%, transparent)
+    }
+
+    .dIcoImg {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--acc) 18%, var(--winBg));
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      transition: transform .15s, border-color .2s;
+    }
+
+    .dIcon:hover .dIcoImg {
+      transform: scale(1.1);
+      border-color: var(--acc)
+    }
+
+    .dIcoLbl {
+      font-size: .62rem;
+      font-weight: 700;
+      color: var(--txt);
+      line-height: 1.2;
+      word-break: break-word;
+      max-width: 68px;
+      text-shadow: 0 1px 3px rgba(255, 255, 255, .5);
+    }
+
+    [data-theme="dark"] .dIcoLbl {
+      text-shadow: 0 1px 4px rgba(0, 0, 0, .7)
+    }
+
+    /* ── lightbox ─────────────────────────────────────── */
+    #lb {
+      position: fixed;
+      inset: 0;
+      z-index: 900;
+      background: rgba(0, 0, 0, .82);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #lb.open {
+      display: flex
+    }
+
+    #lb img {
+      max-width: 88vw;
+      max-height: 80vh;
+      border-radius: var(--rad);
+      object-fit: contain
+    }
+
+    #lbX {
+      position: absolute;
+      top: 14px;
+      right: 18px;
+      background: rgba(255, 255, 255, .12);
+      border: none;
+      color: #fff;
+      font-size: 1.4rem;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Controls strictly packed into a flex container for the top-left -->
+  <div class="topCtrl">
+    <button class="topBtn" id="sfxBtn">🔊</button>
+    <button class="topBtn" id="themeBtn">🌙</button>
+  </div>
+
+  <div id="desk">
+    <!-- Double SVG tiles to infinitely cycle! -->
+    <div id="waveWrap">
+      <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".35"></path>
+        <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".6"></path>
+        <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"></path>
+      </svg>
+      <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".35"></path>
+        <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".6"></path>
+        <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"></path>
+      </svg>
+    </div>
+  </div>
+
+  <div id="lb" onclick="closeLb(event)">
+    <button id="lbX" onclick="closeLb()">✕</button>
+    <img id="lbImg" src="" alt="" />
+  </div>
+
+  <script>
+    /* ── apply CFG colors ──────────────────────────────── */
+    /* Updating CSS root vars to apply the user's CFG colors */
+    document.documentElement.style.setProperty('--acc', CFG.accent);
+    document.documentElement.style.setProperty('--desk', CFG.desktopBg);
+    document.documentElement.style.setProperty('--winBg', CFG.winBg);
+
+    /* ── theme ─────────────────────────────────────────── */
+    const themeBtn = document.getElementById('themeBtn');
+    let isDark = localStorage.getItem('theme') === 'dark';
+    function setTheme(dark) {
+      isDark = dark;
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      document.documentElement.style.setProperty('--acc', dark ? CFG.accentDk : CFG.accent);
+      document.documentElement.style.setProperty('--deskWave', dark ? '#1e293b' : '#bae6fd');
+      themeBtn.textContent = dark ? '☀️' : '🌙';
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+    }
+    themeBtn.onclick = () => setTheme(!isDark);
+    if (isDark) setTheme(true);
+
+    /* ── sound engine ──────────────────────────────────── */
+    let sfxEnabled = true;
+    let sfxUnlocked = false; // Strictly required because of Chrome Autoplay rules!
+    
+    const sndHover = new Audio(CFG.sfxHover);
+    const sndClick = new Audio(CFG.sfxClick);
+    sndHover.volume = 0.3; sndClick.volume = 0.4;
+
+    const sfxBtn = document.getElementById('sfxBtn');
+    sfxBtn.onclick = () => {
+      sfxEnabled = !sfxEnabled;
+      sfxBtn.textContent = sfxEnabled ? '🔊' : '🔇';
+    };
+
+    function playSnd(audio) {
+      if (!sfxEnabled || !sfxUnlocked || !audio.src || audio.src.endsWith('undefined') || audio.src.endsWith('.mp3')) return;
+      audio.currentTime = 0;
+      audio.play().catch(()=>{});
+    }
+
+    // Attempt to unlock audio strictly after user's FIRST global interaction over the dom
+    document.body.addEventListener('click', () => { sfxUnlocked = true; }, {once: true});
+    document.body.addEventListener('keydown', () => { sfxUnlocked = true; }, {once: true});
+
+    // Auto-bind sound effects to every interactive button/link!
+    function bindSfx() {
+      // Find all custom buttons, icons, window close buttons, and anchor links
+      const interactives = document.querySelectorAll('button, .dIcon, .pCard, a, .wDot, .wClose, .topBtn, .fQ, .dlC, .lBtn');
+      interactives.forEach(el => {
+        el.addEventListener('mouseenter', () => playSnd(sndHover));
+        el.addEventListener('mousedown', () => playSnd(sndClick));
+      });
+    }
+
+    /* ── window manager ─────────────────────────────────── */
+    let topZ = 20;
+    const winMap = {};
+
+    /* mkWin function mimics how Sharyap windows are built and rendered */
+    function mkWin(id, title, icon, w, h, x, y, html) {
+      const el = document.createElement('div');
+      el.className = 'win';
+      el.id = 'w-' + id;
+      
+      /* Center windows instead of passing explicit x/y coordinates */
+      const cx = (window.innerWidth - w) / 2;
+      const cy = (window.innerHeight - h) / 2;
+      el.style.cssText = `width:${w}px;height:${h}px;left:${cx}px;top:${cy}px`;
+      
+      el.innerHTML = `
+    <div class="winBar" id="b-${id}">
+      <div class="winTitle">${title}</div>
+      <button class="wClose" onclick="closeWin('${id}')">[x]</button>
+    </div>
+    <div class="winBody" id="wb-${id}">${html}</div>
+    <div class="resH" id="r-${id}"></div>`;
+      
+      document.body.appendChild(el);
+      winMap[id] = { el, title, icon, minned: false, maxed: false, prev: null };
+      el.addEventListener('mousedown', () => focusWin(id));
+      initDrag(id);
+      initRes(id);
+      focusWin(id);
+    }
+
+    /* Manages which window is floating on top */
+    function focusWin(id) {
+      topZ++;
+      winMap[id].el.style.zIndex = topZ;
+      winMap[id].el.classList.add('focused');
+      Object.keys(winMap).forEach(k => { if (k !== id) winMap[k].el.classList.remove('focused'); });
+    }
+
+    /* Completely hides a window returning user to the desktop (like Sharyap modal closes) */
+    function closeWin(id) {
+      winMap[id].el.classList.add('hidden');
+      winMap[id].minned = true;
+    }
+
+    /* Re-shows the window when clicking an icon */
+    function openWin(id) {
+      if (winMap[id]) {
+        // Sharyap always re-centers when opened!
+        const bounds = winMap[id].el.getBoundingClientRect();
+        const cx = (window.innerWidth - bounds.width) / 2;
+        const cy = (window.innerHeight - bounds.height) / 2;
+        winMap[id].el.style.left = cx + 'px';
+        winMap[id].el.style.top = cy + 'px';
+
+        winMap[id].el.classList.remove('hidden');
+        winMap[id].minned = false;
+        focusWin(id);
+      }
+    }
+
+    /* ── drag ───────────────────────────────────────────── */
+    function initDrag(id) {
+      const bar = document.getElementById('b-' + id);
+      const el = winMap[id].el;
+      let dragging = false, dx = 0, dy = 0;
+      bar.addEventListener('mousedown', e => {
+        if (e.button !== 0 || e.target.classList.contains('wDot')) return;
+        if (winMap[id].maxed) return;
+        dragging = true; dx = e.clientX - el.offsetLeft; dy = e.clientY - el.offsetTop;
+        focusWin(id); e.preventDefault();
+      });
+      document.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        let nx = e.clientX - dx, ny = e.clientY - dy;
+        nx = Math.max(0, Math.min(nx, window.innerWidth - el.offsetWidth));
+        ny = Math.max(0, Math.min(ny, window.innerHeight - el.offsetHeight - 50));
+        el.style.left = nx + 'px'; el.style.top = ny + 'px';
+      });
+      document.addEventListener('mouseup', () => { dragging = false; });
+    }
+
+    /* ── resize ─────────────────────────────────────────── */
+    function initRes(id) {
+      const rh = document.getElementById('r-' + id);
+      const el = winMap[id].el;
+      let resizing = false, sx = 0, sy = 0, sw = 0, sh = 0;
+      rh.addEventListener('mousedown', e => {
+        if (winMap[id].maxed) return;
+        resizing = true; sx = e.clientX; sy = e.clientY;
+        sw = el.offsetWidth; sh = el.offsetHeight;
+        e.preventDefault(); e.stopPropagation();
+      });
+      document.addEventListener('mousemove', e => {
+        if (!resizing) return;
+        el.style.width = Math.max(240, sw + e.clientX - sx) + 'px';
+        el.style.height = Math.max(140, sh + e.clientY - sy) + 'px';
+      });
+      document.addEventListener('mouseup', () => { resizing = false; });
+    }
+
+    /* ── desktop icons ──────────────────────────────────── */
+    function mkDeskIcon(id, icon, label, col, row) {
+      const el = document.createElement('div');
+      el.className = 'dIcon';
+      el.style.cssText = `left:${14 + col * 76}px;top:${14 + row * 82}px`;
+      el.innerHTML = `<div class="dIcoImg">${icon}</div><span class="dIcoLbl">${label}</span>`;
+      el.ondblclick = () => openWin(id);
+      document.getElementById('desk').appendChild(el);
+    }
+
+    /* ── lightbox ───────────────────────────────────────── */
+    function openLb(src) {
+      if (!src) return;
+      document.getElementById('lbImg').src = src;
+      document.getElementById('lb').classList.add('open');
+    }
+    function closeLb(e) {
+      if (!e || e.target !== document.getElementById('lbImg'))
+        document.getElementById('lb').classList.remove('open');
+    }
+
+    /* ── FAQ toggle ─────────────────────────────────────── */
+    function tglFaq(i) {
+      const btns = document.querySelectorAll('.fQ');
+      const ans = document.querySelectorAll('.fA');
+      const isOpen = btns[i]?.classList.contains('open');
+      btns.forEach(b => b.classList.remove('open'));
+      ans.forEach(a => a.classList.remove('open'));
+      if (!isOpen && btns[i]) { btns[i].classList.add('open'); ans[i].classList.add('open'); }
+    }
+
+    /* ── HTML builders ──────────────────────────────────── */
+    function avHtml() {
+      return CFG.avatar
+        ? `<img src="${CFG.avatar}" alt="${CFG.name}"/>`
+        : CFG.avatarEmoji;
+    }
+
+    /* ── Sharyap Home Screen UI omitted as a window, and will be rendered onto the desktop instead! ── */
+
+    function bAbout() {
+      const int = CFG.interests.map(i => `<span class="tag">${i}</span>`).join('');
+      const lng = CFG.langs.map(l => `<span class="tag">${l}</span>`).join('');
+      return `
+    <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:13px">
+      <div class="avi">${avHtml()}</div>
+      <div>
+        <div class="bigN" style="font-size:1.35rem">${CFG.name}</div>
+        ${CFG.nameKanji ? `<div style="font-size:.78rem;color:var(--txt2);font-weight:700">${CFG.nameKanji}</div>` : ''}
+        <div class="subT">${CFG.tagline}</div>
+        <div style="font-size:.74rem;color:var(--txt2)">${CFG.location}</div>
+      </div>
+    </div>
+    <span class="sl">about</span>
+    <p class="bioP" id="abBio"></p>
+    <hr/>
+    <span class="sl">education</span>
+    <p style="font-size:.82rem;font-weight:700;color:var(--txt)">${CFG.edu}</p>
+    <p style="font-size:.74rem;color:var(--acc);font-weight:700">${CFG.eduNote}</p>
+    <hr/>
+    <span class="sl">other interests</span>
+    <div class="tagRow">${int}</div>
+    <hr/>
+    <span class="sl">language proficiency</span>
+    <div class="tagRow">${lng}</div>`;
+    }
+
+    function bLinks() {
+      const active = CFG.links.filter(l => l.url);
+      return `<span class="sl">find me online</span>
+    <div class="lGrid">
+      ${active.map(l => `<a class="lBtn" href="${l.url}" target="_blank" rel="noopener"><span class="lIco">${l.emoji}</span>${l.label}</a>`).join('')}
+    </div>
+    <p style="font-size:.68rem;color:var(--txt2);margin-top:12px">clicking any link opens a new tab ✦</p>`;
+    }
+
+    function bProjects() {
+      const tPills = CFG.tools.map(t => `<span class="pill">${t}</span>`).join('');
+      const dPills = CFG.devSkills.map(s => `<span class="pill">${s}</span>`).join('');
+      const gHtml = CFG.gallery.map(g => {
+        const hi = g.img && g.img.length;
+        return `<div class="gItem" onclick="${hi ? `openLb('${g.img}')` : ''}">
+      ${hi ? `<img src="${g.img}" alt="${g.caption}" loading="lazy"/>` : '🖼'}
+      <div class="gCap"><span>${g.caption}</span></div>
+    </div>`;
+      }).join('');
+      const pHtml = CFG.projects.map(p => {
+        const hi = p.img && p.img.length;
+        return `<div class="pCard">
+      <div class="pImg">${hi ? `<img src="${p.img}" alt="${p.title}"/>` : '💻'}</div>
+      <p class="pTit">${p.title}</p>
+      <p class="pDsc">${p.desc}</p>
+      <a href="${p.url}" target="_blank" class="btnSm">${p.btn}</a>
+    </div>`;
+      }).join('');
+      return `
+    <span class="sl">tools</span><div class="pRow">${tPills}</div>
+    <span class="sl">development</span><div class="pRow">${dPills}</div>
+    <hr/>
+    <span class="sl">illustration</span>
+    <div class="gGrid" style="margin-bottom:14px">${gHtml}</div>
+    <span class="sl">projects</span>${pHtml}`;
+    }
+
+    function bFaq() {
+      return `<span class="sl">frequently asked questions</span>
+    <div style="margin-top:4px">
+    ${CFG.faq.map((f, i) => `
+      <div class="fItem">
+        <button class="fQ" onclick="tglFaq(${i})">${f.q}<span class="fArr">+</span></button>
+        <div class="fA" id="fa${i}">${f.a}</div>
+      </div>`).join('')}
+    </div>`;
+    }
+
+    function bContact() {
+      return `
+    <div class="ctBox">
+      <span class="ctIcon">💌</span>
+      <span class="sl" style="display:inline-block">yayy mail!</span>
+      <p style="font-size:.81rem;color:var(--txt2);margin-top:9px;line-height:1.7">the easiest way to reach me is email! i check it regularly and reply to everyone :)</p>
+      <p style="font-size:.83rem;font-weight:700;margin-top:12px;color:var(--txt)">email me at:<br/><span style="color:var(--acc)">${CFG.email}</span></p>
+      <a class="mBtn" href="mailto:${CFG.email}">send me an email!</a>
+    </div>`;
+    }
+
+    function bArticles() {
+      const aHtml = CFG.articles.map(p => {
+        const hi = p.img && p.img.length;
+        return `<div class="pCard">
+      <div class="pImg">${hi ? `<img src="${p.img}" alt="${p.title}"/>` : '📰'}</div>
+      <p class="pTit">${p.title}</p>
+      <p class="pDsc">${p.desc}</p>
+      <a href="${p.url}" target="_blank" class="btnSm">${p.btn}</a>
+    </div>`;
+      }).join('');
+
+      return `
+    <span class="sl">articles & writing</span>
+    <p style="font-size:.74rem;color:var(--txt2);margin-bottom:11px">my latest posts from substack</p>
+    ${aHtml}`;
+    }
+
+    /* ── init ─────────────────────────────────────────────── */
+    /* This function runs when the page loads, setting everything up! */
+    function init() {
+      // 1. Set the browser tab title
+      document.getElementById('pgTitle').textContent = CFG.desktopTitle;
+
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      // 2. Define all the windows we want to create. Note we no longer need the 'home' window.
+      const defs = [
+        { id: 'about', title: 'about', icon: '👤', w: 330, h: 460 },
+        { id: 'articles', title: 'articles', icon: '📰', w: 320, h: 420 },
+        { id: 'projects', title: 'projects', icon: '🎨', w: 350, h: 480 },
+        { id: 'links', title: 'links', icon: '🔗', w: 290, h: 330 },
+        { id: 'faq', title: 'faq', icon: '❓', w: 310, h: 320 },
+        { id: 'contact', title: 'contact', icon: '✉️', w: 290, h: 280 },
+      ];
+
+      // 3. Map each window ID to the function that generates its HTML content
+      const htmlMap = { about: bAbout, articles: bArticles, projects: bProjects, links: bLinks, faq: bFaq, contact: bContact };
+
+      // 4. Create each window using our mkWin helper function!
+      defs.forEach((d) => {
+        mkWin(d.id, d.title, d.icon, d.w, d.h, 0, 0, htmlMap[d.id]());
+      });
+
+      // 5. Fill out the 'About Me' bio automatically
+      const bioEl = document.getElementById('abBio');
+      if (bioEl) bioEl.innerHTML = CFG.aboutBio;
+
+      // 6. Hide all windows by default so the user just sees the desktop
+      ['about', 'articles', 'projects', 'faq', 'contact', 'links'].forEach(id => {
+        winMap[id].el.classList.add('hidden');
+        winMap[id].minned = true;
+      });
+
+      // 7. Render our gorgeous Sharyap-style floating center desktop interface!
+      const deskEl = document.getElementById('desk');
+      
+      const deskNavBtns = [
+        ['about', '👤'], ['articles', '📰'], ['projects', '🎨'],
+        ['links', '🔗'], ['faq', '❓'], ['contact', '✉️'],
+      ].map(([id, ico]) => `
+        <button onclick="openWin('${id}')" style="background:color-mix(in srgb, var(--acc) 10%, var(--winBg)); border:1.5px solid var(--border); border-radius:12px; padding:15px; cursor:pointer; font-family:var(--font); font-weight:700; font-size:.85rem; color:var(--txt); display:flex; flex-direction:column; align-items:center; gap:8px; transition:all .2s;" onmouseover="this.style.borderColor='var(--acc)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform=''">
+          <span style="font-size:1.6rem">${ico}</span>
+          <span>${id}</span>
+        </button>
+      `).join('');
+
+      deskEl.innerHTML += `
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; position:absolute; inset:0; pointer-events:none; z-index:5;">
+          <div style="pointer-events:auto; text-align:center;">
+             ${CFG.avatar ? `<img src="${CFG.avatar}" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:2px solid var(--border); margin-bottom:15px; background:var(--winBg); box-shadow:0 8px 16px rgba(0,0,0,0.1);"/>` : `<div style="font-size:4rem; margin-bottom:15px;">${CFG.avatarEmoji}</div>`}
+             <h1 style="font-size:2.8rem; font-weight:800; color:var(--txt); margin-bottom:5px; line-height:1.1;">hi! i'm <span style="color:var(--acc); text-transform:lowercase">${CFG.name}</span></h1>
+             <p style="font-size:1.1rem; color:var(--txt2); max-width:400px; line-height:1.5;">${CFG.tagline}</p>
+             <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:35px;">
+               ${deskNavBtns}
+             </div>
+          </div>
+        </div>
+      `;
+
+      // Now that all HTML is placed inside the active site, bind the SFX system automatically
+      bindSfx();
+    }
+
+    init();
+  </script>
+</body>
+
+</html>
