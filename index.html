@@ -7,7 +7,7 @@
   <title id="pgTitle">your desktop ✦</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link
-    href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Syne:wght@700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Nunito:wght@400;600;700;800;900&family=Syne:wght@700;800&display=swap"
     rel="stylesheet" />
 
   <!-- ============================================================
@@ -1027,8 +1027,10 @@
     /* ── Sharyap Home Screen UI omitted as a window, and will be rendered onto the desktop instead! ── */
 
     function bAbout() {
-      const int = CFG.interests.map(i => `<span class="tag">${i}</span>`).join('');
-      const lng = CFG.langs.map(l => `<span class="tag">${l}</span>`).join('');
+      const intPool = CFG.interests || [];
+      const lngPool = CFG.langs || [];
+      const int = intPool.map(i => `<span class="tag">${i}</span>`).join('');
+      const lng = lngPool.map(l => `<span class="tag">${l}</span>`).join('');
       return `
     <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:13px">
       <div class="avi">${avHtml()}</div>
@@ -1054,7 +1056,8 @@
     }
 
     function bLinks() {
-      const active = CFG.links.filter(l => l.url);
+      const linksPool = CFG.links || [];
+      const active = linksPool.filter(l => l.url);
       return `<span class="sl">find me online</span>
     <div class="lGrid">
       ${active.map(l => `<a class="lBtn" href="${l.url}" target="_blank" rel="noopener"><span class="lIco">${l.emoji}</span>${l.label}</a>`).join('')}
@@ -1063,16 +1066,21 @@
     }
 
     function bProjects() {
-      const tPills = CFG.tools.map(t => `<span class="pill">${t}</span>`).join('');
-      const dPills = CFG.devSkills.map(s => `<span class="pill">${s}</span>`).join('');
-      const gHtml = CFG.gallery.map(g => {
+      const toolsPool = CFG.tools || [];
+      const skillsPool = CFG.Skills || CFG.skills || [];
+      const galleryPool = CFG.gallery || [];
+      const projectsPool = CFG.projects || [];
+      
+      const tPills = toolsPool.map(t => `<span class="pill">${t}</span>`).join('');
+      const dPills = skillsPool.map(s => `<span class="pill">${s}</span>`).join('');
+      const gHtml = galleryPool.map(g => {
         const hi = g.img && g.img.length;
         return `<div class="gItem" onclick="${hi ? `openLb('${g.img}')` : ''}">
       ${hi ? `<img src="${g.img}" alt="${g.caption}" loading="lazy"/>` : '🖼'}
       <div class="gCap"><span>${g.caption}</span></div>
     </div>`;
       }).join('');
-      const pHtml = CFG.projects.map(p => {
+      const pHtml = projectsPool.map(p => {
         const hi = p.img && p.img.length;
         return `<div class="pCard">
       <div class="pImg">${hi ? `<img src="${p.img}" alt="${p.title}"/>` : '💻'}</div>
@@ -1091,9 +1099,10 @@
     }
 
     function bFaq() {
+      const faqPool = CFG.faq || [];
       return `<span class="sl">frequently asked questions</span>
     <div style="margin-top:4px">
-    ${CFG.faq.map((f, i) => `
+    ${faqPool.map((f, i) => `
       <div class="fItem">
         <button class="fQ" onclick="tglFaq(${i})">${f.q}<span class="fArr">+</span></button>
         <div class="fA" id="fa${i}">${f.a}</div>
@@ -1113,7 +1122,8 @@
     }
 
     function bArticles() {
-      const aHtml = CFG.articles.map(p => {
+      const artPool = CFG.articles || [];
+      const aHtml = artPool.map(p => {
         const hi = p.img && p.img.length;
         return `<div class="pCard">
       <div class="pImg">${hi ? `<img src="${p.img}" alt="${p.title}"/>` : '📰'}</div>
@@ -1154,17 +1164,15 @@
       // 4. Create each window using our mkWin helper function!
       defs.forEach((d) => {
         mkWin(d.id, d.title, d.icon, d.w, d.h, 0, 0, htmlMap[d.id]());
+        // Hide immediately to prevent auto-opening
+        closeWin(d.id);
       });
 
       // 5. Fill out the 'About Me' bio automatically
       const bioEl = document.getElementById('abBio');
       if (bioEl) bioEl.innerHTML = CFG.aboutBio;
 
-      // 6. Hide all windows by default so the user just sees the desktop
-      ['about', 'articles', 'projects', 'faq', 'contact', 'links'].forEach(id => {
-        winMap[id].el.classList.add('hidden');
-        winMap[id].minned = true;
-      });
+      // 6. Windows are now hidden during creation in the step above!
 
       // 7. Render our gorgeous Sharyap-style floating center desktop interface!
       const deskEl = document.getElementById('desk');
@@ -1179,18 +1187,18 @@
         </button>
       `).join('');
 
-      deskEl.innerHTML += `
+      deskEl.insertAdjacentHTML('beforeend', `
         <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; position:absolute; inset:0; pointer-events:none; z-index:5;">
           <div style="pointer-events:auto; text-align:center;">
              ${CFG.avatar ? `<img src="${CFG.avatar}" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:2px solid var(--border); margin-bottom:15px; background:var(--winBg); box-shadow:0 8px 16px rgba(0,0,0,0.1);"/>` : `<div style="font-size:4rem; margin-bottom:15px;">${CFG.avatarEmoji}</div>`}
              <h1 style="font-size:2.8rem; font-weight:800; color:var(--txt); margin-bottom:5px; line-height:1.1;">hi! i'm <span style="color:var(--acc); text-transform:lowercase">${CFG.name}</span></h1>
-             <p style="font-size:1.1rem; color:var(--txt2); max-width:400px; line-height:1.5;">${CFG.tagline}</p>
+             <p style="font-size:1.1rem; color:var(--txt2); max-width:400px; line-height:1.5; margin: 0 auto;">${CFG.tagline}</p>
              <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:35px;">
                ${deskNavBtns}
              </div>
           </div>
         </div>
-      `;
+      `);
 
       // Now that all HTML is placed inside the active site, bind the SFX system automatically
       bindSfx();
