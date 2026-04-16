@@ -908,7 +908,7 @@
     <div class="resH" id="r-${id}"></div>`;
       
       document.body.appendChild(el);
-      winMap[id] = { el, title, icon, minned: false, maxed: false, prev: null };
+      winMap[id] = { el, title, icon, w, h, minned: false, maxed: false, prev: null };
       el.addEventListener('mousedown', () => focusWin(id));
       initDrag(id);
       initRes(id);
@@ -929,13 +929,11 @@
       winMap[id].minned = true;
     }
 
-    /* Re-shows the window when clicking an icon */
     function openWin(id) {
       if (winMap[id]) {
-        // Sharyap always re-centers when opened!
-        const bounds = winMap[id].el.getBoundingClientRect();
-        const cx = (window.innerWidth - bounds.width) / 2;
-        const cy = (window.innerHeight - bounds.height) / 2;
+        // Use stored dimensions to center even when hidden (Sharyap always re-centers!)
+        const cx = (window.innerWidth - winMap[id].w) / 2;
+        const cy = (window.innerHeight - winMap[id].h) / 2;
         winMap[id].el.style.left = cx + 'px';
         winMap[id].el.style.top = cy + 'px';
 
@@ -982,7 +980,14 @@
         el.style.width = Math.max(240, sw + e.clientX - sx) + 'px';
         el.style.height = Math.max(140, sh + e.clientY - sy) + 'px';
       });
-      document.addEventListener('mouseup', () => { resizing = false; });
+      document.addEventListener('mouseup', () => { 
+          if(resizing && winMap[id]) {
+            const b = el.getBoundingClientRect();
+            winMap[id].w = b.width;
+            winMap[id].h = b.height;
+          }
+          resizing = false; 
+      });
     }
 
     /* ── desktop icons ──────────────────────────────────── */
@@ -1149,10 +1154,10 @@
 
       // 2. Define all the windows we want to create. Note we no longer need the 'home' window.
       const defs = [
-        { id: 'about', title: 'about', icon: '👤', w: 330, h: 460 },
+        { id: 'about', title: 'about', icon: '👤', w: 580, h: 440 },
         { id: 'articles', title: 'articles', icon: '📰', w: 320, h: 420 },
-        { id: 'projects', title: 'projects', icon: '🎨', w: 350, h: 480 },
-        { id: 'links', title: 'links', icon: '🔗', w: 290, h: 330 },
+        { id: 'projects', title: 'projects', icon: '🎨', w: 520, h: 640 },
+        { id: 'links', title: 'links', icon: '🔗', w: 300, h: 240 },
         { id: 'faq', title: 'faq', icon: '❓', w: 310, h: 320 },
         { id: 'contact', title: 'contact', icon: '✉️', w: 290, h: 280 },
       ];
