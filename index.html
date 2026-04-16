@@ -133,8 +133,8 @@
     .topBtn:hover { transform: scale(1.1) }
 
     #waveWrap {
-      position: absolute;
-      bottom: -2px; left: 0; width: 200vw; height: 170px;
+      position: fixed;
+      bottom: -4px; left: 0; width: 200vw; height: 160px;
       display: flex;
       pointer-events: none; z-index: 1;
       /* Significantly slowed down the animation duration to 80s */
@@ -703,7 +703,6 @@
     #desk {
       position: fixed;
       inset: 0;
-      bottom: 50px;
       z-index: 1;
       pointer-events: none
     }
