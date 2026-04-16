@@ -108,6 +108,10 @@
       --fontHd: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
+    h1, h2, h3, .winTitle, .sl {
+      text-transform: lowercase;
+    }
+
     [data-theme="dark"] {
       --desk: #0f172a;
       --deskWave: #1e293b;
@@ -1102,12 +1106,12 @@
     </div>`;
       }).join('');
       return `
-    <span class="sl">tools</span><div class="pRow">${tPills}</div>
-    <span class="sl">development</span><div class="pRow">${dPills}</div>
+    <span class="sl">skills</span><div class="pRow">${tPills}</div>
+    <span class="sl">technical skills</span><div class="pRow">${dPills}</div>
     <hr/>
-    <span class="sl">illustration</span>
+    <span class="sl">photo portfolio</span>
     <div class="gGrid" style="margin-bottom:14px">${gHtml}</div>
-    <span class="sl">projects</span>${pHtml}`;
+    <span class="sl">other projects</span>${pHtml}`;
     }
 
     function bFaq() {
