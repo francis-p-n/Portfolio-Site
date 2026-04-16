@@ -46,9 +46,9 @@
       ],
 
       gallery: [
-        { img: "", caption: "ASEAN Sustainability SDG National Winner 2023" },
-        { img: "", caption: "WOSM Safe From Harm Certified" },
-        { img: "", caption: "Event Photography showcase" },
+        { img: "images/lights.jpg", caption: "From a workshop held by the Monash Photography Society." },
+        { img: "images/scouts.jpg", caption: "From the Petaling Perdana Scouts 80KM Hike 2025." },
+        { img: "images/eucharist.JPG", caption: "From a church camp in 2025." },
       ],
 
       faq: [
@@ -108,8 +108,12 @@
       --fontHd: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
-    h1, h2, h3, .winTitle, .sl {
+    h1, h2, h3, .winTitle, .sl, .fQ {
       text-transform: lowercase;
+    }
+    
+    .pTit {
+      text-transform: uppercase;
     }
 
     [data-theme="dark"] {
@@ -312,7 +316,6 @@
       font-size: .63rem;
       font-weight: 900;
       letter-spacing: 1.5px;
-      text-transform: uppercase;
       color: var(--acc);
       display: block;
       margin-bottom: 7px
@@ -1168,7 +1171,7 @@
       const defs = [
         { id: 'about', title: 'about', icon: '👤', w: 580, h: 440 },
         { id: 'articles', title: 'articles', icon: '📰', w: 320, h: 420 },
-        { id: 'projects', title: 'projects', icon: '🎨', w: 520, h: 640 },
+        { id: 'projects', title: 'projects', icon: '🎨', w: 580, h: 440 },
         { id: 'links', title: 'links', icon: '🔗', w: 300, h: 240 },
         { id: 'faq', title: 'faq', icon: '❓', w: 310, h: 320 },
         { id: 'contact', title: 'contact', icon: '✉️', w: 290, h: 280 },
