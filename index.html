@@ -15,7 +15,7 @@
   ============================================================ -->
   <script>
     const CFG = {
-      name: "Francis Paul",
+      name: "francis",
       nameKanji: "",
       tagline: "passionate in journalism & storytelling",
       location: "Kuala Lumpur, Malaysia",
@@ -24,10 +24,10 @@
       avatarEmoji: "🖊️",
       desktopTitle: "francis's desktop",
 
-      aboutBio: `hi! i'm <strong>Francis Paul Narcis</strong> — I'm currently studying Computer Science in Data Science at Monash University Malaysia, and I'm deeply passionate about journalism, storytelling, and community building.<br><br>I also dedicate a lot of my time to youth leadership and mentoring, serving as Interim Leader for the 46th Petaling Perdana Scout Troop and volunteering at the Church of the Assumption.`,
+      aboutBio: `hi! i'm <strong>Francis</strong> — I'm currently studying Computer Science in Data Science at Monash University Malaysia, and I'm deeply passionate about journalism, storytelling, and community building.<br><br>I also dedicate a lot of my time to youth leadership and mentoring, serving as Interim Leader for the 46th Petaling Perdana Scout Troop and volunteering at the Church of the Assumption.`,
       edu: "Bachelors of Computer Science in Data Science",
       eduNote: "(2025 - Present) Monash University Malaysia",
-      interests: ["Actively working on research projects", "Writing a theological book", "Game development", "Journalism and storytelling"],
+      interests: ["Research Projects", "Theology", "Game Development", "Journalism and Storytelling"],
       langs: ["English (fluent)", "Malay (fluent)", "Chinese Mandarin (basic)", "Hokkien (basic)"],
 
       links: [
@@ -65,7 +65,7 @@
 
       /* Provide filenames here for sound effects (e.g., 'hover.mp3' from zapsplat inside this folder) */
       sfxHover: "",
-      sfxClick: "",
+      sfxClick: "sfx/click.mp3",
 
       /* Sharyap relies heavily on orange as an accent color for links/buttons */
       accent: "#f5a11c",       
@@ -865,9 +865,17 @@
     };
 
     function playSnd(audio) {
-      if (!sfxEnabled || !sfxUnlocked || !audio.src || audio.src.endsWith('undefined') || audio.src.endsWith('.mp3')) return;
+      if (!sfxEnabled || !audio.src || audio.src.includes('undefined')) return;
+      
+      // If the browser hasn't allowed audio yet, we'll try to unlock it now
+      if (!sfxUnlocked) {
+        sfxUnlocked = true;
+      }
+      
       audio.currentTime = 0;
-      audio.play().catch(()=>{});
+      audio.play().catch(err => {
+        console.warn("SFX playback failed:", err);
+      });
     }
 
     // Attempt to unlock audio strictly after user's FIRST global interaction over the dom
