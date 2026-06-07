@@ -21,14 +21,20 @@ export async function renderArticlesHtml() {
   const highlighted = articles.filter(a => a.is_highlight);
   const recent = articles.filter(a => !a.is_highlight);
 
-  const renderCard = (p) => {
-    const hi = p.img && p.img.length;
-    // We open the article in a new window instead of a new tab
-    return `<div class="pCard" onclick="openArticleWindow('${p.id}')" style="cursor:pointer">
-      <div class="pImg">${hi ? `<img src="${p.img}" alt="${p.title}"/>` : '📰'}</div>
+  const renderHighlightCard = (p) => {
+    const hasImg = p.img && p.img.length;
+    return `<div class="pCard" onclick="openArticleWindow('${p.id}')" style="cursor:pointer; margin-bottom: 15px;">
+      ${hasImg ? `<div class="pImg"><img src="${p.img}" alt="${p.title}"/></div>` : ''}
       <p class="pTit">${p.title}</p>
-      <p class="pDsc">${p.description}</p>
-      <button class="btnSm" style="pointer-events:none">read more</button>
+      <p class="pDsc">${p.description || ''}</p>
+      <button class="btnSm" style="pointer-events:none; margin-top:10px;">read more</button>
+    </div>`;
+  };
+
+  const renderRecentItem = (p) => {
+    return `<div onclick="openArticleWindow('${p.id}')" style="cursor:pointer; padding: 12px 0; border-bottom: 1px dashed color-mix(in srgb, var(--border) 50%, transparent); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
+      <p class="pTit" style="margin-bottom: 4px; color: var(--acc); font-size: 0.85rem;">${p.title}</p>
+      <p class="pDsc" style="font-size: 0.8rem; margin: 0;">${p.description || ''}</p>
     </div>`;
   };
 
@@ -37,13 +43,15 @@ export async function renderArticlesHtml() {
 
   if (highlighted.length > 0) {
     html += `<h3 style="font-size: .85rem; margin-top: 15px; margin-bottom: 10px;">Highlights</h3>`;
-    html += highlighted.map(renderCard).join('');
+    html += highlighted.map(renderHighlightCard).join('');
     html += `<hr style="margin: 20px 0; border: none; border-top: 1.5px dashed var(--border);" />`;
   }
 
   if (recent.length > 0) {
     html += `<h3 style="font-size: .85rem; margin-bottom: 10px;">Recent Articles</h3>`;
-    html += recent.map(renderCard).join('');
+    html += `<div style="display: flex; flex-direction: column;">`;
+    html += recent.map(renderRecentItem).join('');
+    html += `</div>`;
   }
 
   if (articles.length === 0) {
