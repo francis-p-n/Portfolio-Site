@@ -834,7 +834,8 @@
     <img id="lbImg" src="" alt="" />
   </div>
 
-  <script>
+  <script type="module">
+    import { renderArticlesHtml } from './src/articles.js';
     /* ── apply CFG colors ──────────────────────────────── */
     /* Updating CSS root vars to apply the user's CFG colors */
     document.documentElement.style.setProperty('--acc', CFG.accent);
@@ -1138,27 +1139,13 @@
     </div>`;
     }
 
-    function bArticles() {
-      const artPool = CFG.articles || [];
-      const aHtml = artPool.map(p => {
-        const hi = p.img && p.img.length;
-        return `<div class="pCard">
-      <div class="pImg">${hi ? `<img src="${p.img}" alt="${p.title}"/>` : '📰'}</div>
-      <p class="pTit">${p.title}</p>
-      <p class="pDsc">${p.desc}</p>
-      <a href="${p.url}" target="_blank" class="btnSm">${p.btn}</a>
-    </div>`;
-      }).join('');
-
-      return `
-    <span class="sl">articles & writing</span>
-    <p style="font-size:.74rem;color:var(--txt2);margin-bottom:11px">my latest posts from substack</p>
-    ${aHtml}`;
+    async function bArticles() {
+      return await renderArticlesHtml();
     }
 
     /* ── init ─────────────────────────────────────────────── */
     /* This function runs when the page loads, setting everything up! */
-    function init() {
+    async function init() {
       // 1. Set the browser tab title
       document.getElementById('pgTitle').textContent = CFG.desktopTitle;
 
@@ -1179,11 +1166,12 @@
       const htmlMap = { about: bAbout, articles: bArticles, projects: bProjects, links: bLinks, faq: bFaq, contact: bContact };
 
       // 4. Create each window using our mkWin helper function!
-      defs.forEach((d) => {
-        mkWin(d.id, d.title, d.icon, d.w, d.h, 0, 0, htmlMap[d.id]());
+      for (const d of defs) {
+        const htmlContent = await htmlMap[d.id]();
+        mkWin(d.id, d.title, d.icon, d.w, d.h, 0, 0, htmlContent);
         // Hide immediately to prevent auto-opening
         closeWin(d.id);
-      });
+      }
 
       // 5. Fill out the 'About Me' bio automatically
       const bioEl = document.getElementById('abBio');

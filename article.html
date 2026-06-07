@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title id="articleTitle">Loading Article...</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Nunito:wght@400;600;700;800;900&family=Syne:wght@700;800&family=Lora:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg: #ffffff;
+      --text: #242424;
+      --text-muted: #6b6b6b;
+      --acc: #f5a11c;
+      --border: #f2f2f2;
+      --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-body: 'Lora', Georgia, serif;
+    }
+    
+    [data-theme="dark"] {
+      --bg: #121212;
+      --text: #e8eacc;
+      --text-muted: #8a9a80;
+      --border: #2a2a2a;
+    }
+
+    body {
+      font-family: var(--font-body);
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.8;
+      font-size: 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Navbar */
+    .nav {
+      font-family: var(--font-ui);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      font-weight: 700;
+      font-size: 1.2rem;
+      text-decoration: none;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+    
+    .nav-brand span { color: var(--acc); }
+
+    /* Container */
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 60px 20px;
+    }
+
+    /* Article Header */
+    .article-header { margin-bottom: 40px; }
+    .article-title {
+      font-family: var(--font-ui);
+      font-weight: 800;
+      font-size: 2.8rem;
+      line-height: 1.2;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    .article-desc {
+      font-family: var(--font-ui);
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      margin-bottom: 30px;
+      line-height: 1.4;
+    }
+    .article-meta {
+      font-family: var(--font-ui);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .article-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--acc) 18%, var(--bg));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      border: 1px solid var(--border);
+    }
+
+    /* Article Content - Markdown styling */
+    .content h1, .content h2, .content h3, .content h4 {
+      font-family: var(--font-ui);
+      font-weight: 700;
+      margin-top: 40px;
+      margin-bottom: 15px;
+      line-height: 1.3;
+    }
+    .content h2 { font-size: 1.8rem; }
+    .content h3 { font-size: 1.4rem; }
+    .content p { margin-bottom: 24px; }
+    .content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+      margin: 30px 0;
+    }
+    .content a {
+      color: var(--text);
+      text-decoration: underline;
+      text-decoration-color: var(--acc);
+      text-underline-offset: 4px;
+    }
+    .content blockquote {
+      border-left: 3px solid var(--acc);
+      padding-left: 20px;
+      font-style: italic;
+      color: var(--text-muted);
+      margin: 30px 0;
+    }
+    .content pre {
+      background: color-mix(in srgb, var(--acc) 5%, var(--bg));
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: ui-monospace, monospace;
+      font-size: 0.9rem;
+      margin: 30px 0;
+      border: 1px solid var(--border);
+    }
+    .content code {
+      font-family: ui-monospace, monospace;
+      font-size: 0.9em;
+      background: color-mix(in srgb, var(--acc) 10%, transparent);
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    /* Tags */
+    .tags {
+      font-family: var(--font-ui);
+      margin-top: 50px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .tag {
+      background: color-mix(in srgb, var(--text-muted) 10%, transparent);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+    }
+
+    /* Loader */
+    #loader {
+      text-align: center;
+      padding: 100px;
+      font-family: var(--font-ui);
+      color: var(--text-muted);
+    }
+    #articleContent { display: none; }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="/" class="nav-brand">francis<span>.</span></a>
+    <div></div> <!-- Optional nav elements -->
+  </nav>
+
+  <div class="container">
+    <div id="loader">Loading article...</div>
+
+    <div id="articleContent">
+      <header class="article-header">
+        <h1 class="article-title" id="title"></h1>
+        <p class="article-desc" id="description"></p>
+        <div class="article-meta">
+          <div class="article-avatar">🖊️</div>
+          <div>
+            <div style="color:var(--text); font-weight:600;">Francis</div>
+            <div id="date"></div>
+          </div>
+        </div>
+      </header>
+      
+      <div class="content" id="content"></div>
+      
+      <div class="tags" id="tags"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/article.js"></script>
+</body>
+</html>
