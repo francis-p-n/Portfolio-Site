@@ -18,36 +18,6 @@ An interactive, desktop-OS themed personal portfolio and blog built with vanilla
 - **Libraries:** `marked` (Markdown parsing), `dompurify` (HTML sanitization)
 - **Deployment:** Vercel
 
-## 💻 Local Development
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/francis-p-n/Portfolio-Site.git
-   cd Portfolio-Site
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Set up Environment Variables:**
-   Create a `.env` file in the root directory and add your Supabase credentials:
-   ```env
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
-
-4. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
-
-5. **Build for production:**
-   ```bash
-   npm run build
-   ```
-
 ## 🗄️ Database Setup
 
 To enable the articles feature, you need a Supabase project.
