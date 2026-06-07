@@ -835,7 +835,7 @@
   </div>
 
   <script type="module">
-    import { renderArticlesHtml } from './src/articles.js';
+    import { renderArticlesHtml, openArticleWindow } from './src/articles.js';
     /* ── apply CFG colors ──────────────────────────────── */
     /* Updating CSS root vars to apply the user's CFG colors */
     document.documentElement.style.setProperty('--acc', CFG.accent);
@@ -1215,6 +1215,8 @@
     window.openLb = openLb;
     window.closeLb = closeLb;
     window.tglFaq = tglFaq;
+    window.mkWin = mkWin;
+    window.openArticleWindow = openArticleWindow;
 
     init();
   </script>
