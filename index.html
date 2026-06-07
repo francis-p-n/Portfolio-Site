@@ -1209,6 +1209,13 @@
       bindSfx();
     }
 
+    // Expose functions to global scope for inline HTML handlers
+    window.openWin = openWin;
+    window.closeWin = closeWin;
+    window.openLb = openLb;
+    window.closeLb = closeLb;
+    window.tglFaq = tglFaq;
+
     init();
   </script>
 </body>
