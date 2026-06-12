@@ -94,7 +94,7 @@
       --winBg: #ffffff;
       /* Dark gray text to match the clean aesthetic */
       --txt: #333333;
-      --txt2: #6b7280;
+      --txt2: #555f6e;
       /* Sharyap uses sharp 1px borders of a medium/dark gray */
       --border: #4b4b4b;
       --rad: 12px;     /* For the bottom window radius */
@@ -119,7 +119,7 @@
       --deskWave: #1e293b;
       --winBg: #121212;
       --txt: #e8eacc;
-      --txt2: #8a9a80;
+      --txt2: #9aaa90;
       --border: #ffffff;
       --taskbar: #121212;
     }
@@ -236,24 +236,27 @@
       cursor: grabbing
     }
 
-    /* Replacing standard window controls with a single "[x]" button per user request */
     .wClose {
-      background: none;
-      border: none;
-      color: white; /* Sharyap title buttons are white */
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: white;
       font-family: var(--fontHd);
       font-weight: 700;
-      font-size: 1.1rem;
+      font-size: 0.8rem;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform .15s;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      transition: background .15s, transform .15s;
+      line-height: 1;
     }
 
     .wClose:hover {
+      background: rgba(255,255,255,0.25);
       transform: scale(1.1);
-      color: var(--acc); /* turns orange on hover! */
     }
 
     .winTitle {
@@ -916,7 +919,7 @@
       el.innerHTML = `
     <div class="winBar" id="b-${id}">
       <div class="winTitle">${title}</div>
-      <button class="wClose" onclick="closeWin('${id}')">[x]</button>
+      <button class="wClose" onclick="closeWin('${id}')">✕</button>
     </div>
     <div class="winBody" id="wb-${id}">${html}</div>
     <div class="resH" id="r-${id}"></div>`;

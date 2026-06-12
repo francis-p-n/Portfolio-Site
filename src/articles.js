@@ -23,32 +23,65 @@ export async function renderArticlesHtml() {
 
   const renderHighlightCard = (p) => {
     const hasImg = p.img && p.img.length;
-    return `<div class="pCard" onclick="openArticleWindow('${p.id}')" style="cursor:pointer; margin-bottom: 15px;">
+    const dateStr = p.created_at ? new Date(p.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short' }) : '';
+    const category = (p.tags && p.tags.length > 0) ? p.tags[0] : '';
+    const meta = [dateStr, category].filter(Boolean).join(' · ');
+    return `<div class="pCard artHighlight" onclick="openArticleWindow('${p.id}')" style="cursor:pointer; margin-bottom: 15px; border-radius: var(--radSm); transition: box-shadow 0.2s, transform 0.2s;">
       ${hasImg ? `<div class="pImg"><img src="${p.img}" alt="${p.title}"/></div>` : ''}
       <p class="pTit">${p.title}</p>
+      ${meta ? `<p style="font-size:0.7rem; color:var(--acc); font-weight:700; margin-bottom:5px; letter-spacing:0.5px;">${meta}</p>` : ''}
       <p class="pDsc">${p.description || ''}</p>
-      <button class="btnSm" style="pointer-events:none; margin-top:10px;">read more</button>
+      <span style="display:inline-flex; align-items:center; gap:5px; font-size:0.77rem; font-weight:700; color:var(--acc); margin-top:8px;">Read Article <span style="transition: transform 0.2s;">→</span></span>
     </div>`;
   };
 
   const renderRecentItem = (p) => {
-    return `<div onclick="openArticleWindow('${p.id}')" style="cursor:pointer; padding: 12px 0; border-bottom: 1px dashed color-mix(in srgb, var(--border) 50%, transparent); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
-      <p class="pTit" style="margin-bottom: 4px; color: var(--acc); font-size: 0.85rem;">${p.title}</p>
-      <p class="pDsc" style="font-size: 0.8rem; margin: 0;">${p.description || ''}</p>
+    const dateStr = p.created_at ? new Date(p.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short' }) : '';
+    const category = (p.tags && p.tags.length > 0) ? p.tags[0] : '';
+    const meta = [dateStr, category].filter(Boolean).join(' · ');
+    return `<div class="artRecentItem" onclick="openArticleWindow('${p.id}')" style="cursor:pointer; padding: 11px 10px; border-radius: var(--radSm); border-bottom: 1px solid color-mix(in srgb, var(--border) 30%, transparent);">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+        <div style="flex:1;">
+          ${meta ? `<p style="font-size:0.68rem; color:var(--acc); font-weight:700; margin-bottom:3px; letter-spacing:0.4px;">${meta}</p>` : ''}
+          <p class="artRecentTitle" style="font-size:0.85rem; font-weight:700; color:var(--txt); margin-bottom:3px;">${p.title}</p>
+          <p class="pDsc" style="font-size:0.78rem; margin:0; color:var(--txt2);">${p.description || ''}</p>
+        </div>
+        <span class="artArrow" style="color:var(--acc); font-weight:900; font-size:1rem; flex-shrink:0; padding-top:2px; transition: transform 0.2s;">→</span>
+      </div>
     </div>`;
   };
 
-  let html = `<span class="sl">articles & writing</span>
+  let html = `
+    <style>
+      .artHighlight:hover {
+        box-shadow: 0 4px 18px rgba(0,0,0,0.10);
+        transform: translateY(-2px);
+      }
+      .artRecentItem:hover {
+        background: color-mix(in srgb, var(--acc) 6%, var(--winBg));
+      }
+      .artRecentItem:hover .artRecentTitle {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      .artRecentItem:hover .artArrow {
+        transform: translateX(3px);
+      }
+      .artRecentItem:last-child {
+        border-bottom: none;
+      }
+    </style>
+    <span class="sl">articles & writing</span>
     <p style="font-size:.74rem;color:var(--txt2);margin-bottom:11px">my latest posts and thoughts</p>`;
 
   if (highlighted.length > 0) {
-    html += `<h3 style="font-size: .85rem; margin-top: 15px; margin-bottom: 10px;">Highlights</h3>`;
+    html += `<h3 style="font-size: .78rem; font-weight:900; letter-spacing:1px; color:var(--acc); margin-top: 15px; margin-bottom: 10px; text-transform:uppercase;">Highlight</h3>`;
     html += highlighted.map(renderHighlightCard).join('');
-    html += `<hr style="margin: 20px 0; border: none; border-top: 1.5px dashed var(--border);" />`;
+    html += `<hr style="margin: 18px 0;" />`;
   }
 
   if (recent.length > 0) {
-    html += `<h3 style="font-size: .85rem; margin-bottom: 10px;">Recent Articles</h3>`;
+    html += `<h3 style="font-size: .78rem; font-weight:900; letter-spacing:1px; color:var(--acc); margin-bottom: 8px; text-transform:uppercase;">Recent Articles</h3>`;
     html += `<div style="display: flex; flex-direction: column;">`;
     html += recent.map(renderRecentItem).join('');
     html += `</div>`;
