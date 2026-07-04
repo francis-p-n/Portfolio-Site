@@ -219,6 +219,34 @@
       z-index: 20;
     }
 
+    .win.opening {
+      animation: winPop .18s ease-out;
+    }
+
+    @keyframes winPop {
+      from { opacity: 0; transform: scale(.97) translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    /* Temporarily applied so snapping glides instead of teleporting */
+    .win.snapAnim {
+      transition: left .18s ease, top .18s ease, width .18s ease, height .18s ease;
+    }
+
+    /* Dashed accent preview shown while dragging toward a snap edge */
+    #snapGhost {
+      position: fixed;
+      z-index: 9;
+      border: 2px dashed var(--acc);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--acc) 12%, transparent);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .15s ease, left .15s ease, top .15s ease, width .15s ease, height .15s ease;
+    }
+
+    #snapGhost.show { opacity: 1; }
+
     .winBar {
       height: var(--titleH);
       flex-shrink: 0;
@@ -230,6 +258,10 @@
       padding: 0 14px;
       justify-content: space-between;
       cursor: grab;
+      /* Stops the browser from hijacking touch drags as page scroll/zoom */
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .winBar:active {
@@ -281,6 +313,15 @@
       align-items: flex-end;
       justify-content: flex-end;
       padding: 3px;
+      touch-action: none;
+    }
+
+    /* Fingers need a bigger resize target than mouse cursors */
+    @media (pointer: coarse) {
+      .resH {
+        width: 30px;
+        height: 30px;
+      }
     }
 
     .resH::after {
@@ -894,9 +935,12 @@
     let sfxEnabled = true;
     let sfxUnlocked = false; // Strictly required because of Chrome Autoplay rules!
     
-    const sndHover = new Audio(CFG.sfxHover);
-    const sndClick = new Audio(CFG.sfxClick);
-    sndHover.volume = 0.3; sndClick.volume = 0.4;
+    /* Only build Audio objects for configured files — an empty src resolves
+       to the page URL and fails loudly on every hover */
+    const sndHover = CFG.sfxHover ? new Audio(CFG.sfxHover) : null;
+    const sndClick = CFG.sfxClick ? new Audio(CFG.sfxClick) : null;
+    if (sndHover) sndHover.volume = 0.3;
+    if (sndClick) sndClick.volume = 0.4;
 
     const sfxBtn = document.getElementById('sfxBtn');
     sfxBtn.onclick = () => {
@@ -905,7 +949,7 @@
     };
 
     function playSnd(audio) {
-      if (!sfxEnabled || !audio.src || audio.src.includes('undefined')) return;
+      if (!sfxEnabled || !audio) return;
       
       // If the browser hasn't allowed audio yet, we'll try to unlock it now
       if (!sfxUnlocked) {
@@ -938,6 +982,8 @@
 
     /* mkWin function mimics how Sharyap windows are built and rendered */
     function mkWin(id, title, icon, w, h, x, y, html) {
+      /* Re-created windows (e.g. reopening an article) replace their stale copy */
+      if (winMap[id]) winMap[id].el.remove();
       const el = document.createElement('div');
       el.className = 'win';
       el.id = 'w-' + id;
@@ -968,6 +1014,15 @@
     /* Manages which window is floating on top */
     function focusWin(id) {
       topZ++;
+      /* Keep windows below the fixed top controls (z-index 500) by
+         renormalizing the stack before it climbs that high */
+      if (topZ > 450) {
+        topZ = 20;
+        Object.values(winMap)
+          .sort((a, b) => (+a.el.style.zIndex || 0) - (+b.el.style.zIndex || 0))
+          .forEach(w => { w.el.style.zIndex = ++topZ; });
+        topZ++;
+      }
       winMap[id].el.style.zIndex = topZ;
       winMap[id].el.classList.add('focused');
       Object.keys(winMap).forEach(k => { if (k !== id) winMap[k].el.classList.remove('focused'); });
@@ -986,65 +1041,171 @@
         const safeH = Math.min(winMap[id].origH || winMap[id].h, window.innerHeight - 80);
         const cx = Math.max(16, (window.innerWidth - safeW) / 2);
         const cy = Math.max(60, (window.innerHeight - safeH) / 2);
-        
+
         winMap[id].w = safeW;
         winMap[id].h = safeH;
+        winMap[id].maxed = false;
         winMap[id].el.style.width = safeW + 'px';
         winMap[id].el.style.height = safeH + 'px';
         winMap[id].el.style.left = cx + 'px';
         winMap[id].el.style.top = cy + 'px';
 
         winMap[id].el.classList.remove('hidden');
+        winMap[id].el.classList.add('opening');
+        winMap[id].el.addEventListener('animationend', () => winMap[id].el.classList.remove('opening'), { once: true });
         winMap[id].minned = false;
         focusWin(id);
       }
     }
 
-    /* ── drag ───────────────────────────────────────────── */
+    /* ── window snapping ────────────────────────────────── */
+    const SNAP_EDGE = 24; /* px from a screen edge that arms a snap */
+    const snapGhost = document.createElement('div');
+    snapGhost.id = 'snapGhost';
+    document.body.appendChild(snapGhost);
+
+    function snapZone(x, y) {
+      if (y <= SNAP_EDGE) return 'top';
+      /* Half-screen splits only make sense on wider viewports */
+      if (window.innerWidth >= 700) {
+        if (x <= SNAP_EDGE) return 'left';
+        if (x >= window.innerWidth - SNAP_EDGE) return 'right';
+      }
+      return null;
+    }
+
+    function snapRect(zone) {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      if (zone === 'left') return { x: 8, y: 8, w: vw / 2 - 12, h: vh - 16 };
+      if (zone === 'right') return { x: vw / 2 + 4, y: 8, w: vw / 2 - 12, h: vh - 16 };
+      return { x: 8, y: 8, w: vw - 16, h: vh - 16 }; /* top = maximize */
+    }
+
+    function showGhost(zone) {
+      if (!zone) { snapGhost.classList.remove('show'); return; }
+      const r = snapRect(zone);
+      snapGhost.style.left = r.x + 'px';
+      snapGhost.style.top = r.y + 'px';
+      snapGhost.style.width = r.w + 'px';
+      snapGhost.style.height = r.h + 'px';
+      snapGhost.classList.add('show');
+    }
+
+    function animateTo(el, r) {
+      el.classList.add('snapAnim');
+      el.style.left = r.x + 'px'; el.style.top = r.y + 'px';
+      el.style.width = r.w + 'px'; el.style.height = r.h + 'px';
+      setTimeout(() => el.classList.remove('snapAnim'), 200);
+    }
+
+    function applySnap(id, zone) {
+      const win = winMap[id], el = win.el;
+      /* Remember the floating geometry so restore/unsnap can return to it */
+      if (!win.maxed) win.prev = { x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight };
+      animateTo(el, snapRect(zone));
+      win.maxed = true;
+    }
+
+    function restoreWin(id) {
+      const win = winMap[id];
+      const p = win.prev || { x: 60, y: 60, w: win.origW, h: win.origH };
+      animateTo(win.el, p);
+      win.maxed = false;
+    }
+
+    function toggleMax(id) {
+      winMap[id].maxed ? restoreWin(id) : applySnap(id, 'top');
+    }
+
+    /* ── drag (pointer events cover mouse AND touch) ────── */
     function initDrag(id) {
       const bar = document.getElementById('b-' + id);
       const el = winMap[id].el;
-      let dragging = false, dx = 0, dy = 0;
-      bar.addEventListener('mousedown', e => {
-        if (e.button !== 0 || e.target.classList.contains('wDot')) return;
-        if (winMap[id].maxed) return;
-        dragging = true; dx = e.clientX - el.offsetLeft; dy = e.clientY - el.offsetTop;
-        focusWin(id); e.preventDefault();
+      let dragging = false, moved = false, dx = 0, dy = 0, startX = 0, startY = 0, zone = null;
+
+      bar.addEventListener('pointerdown', e => {
+        if (e.button !== 0 || e.target.closest('.wClose')) return;
+        focusWin(id);
+        /* Grabbing a snapped window pops it back to floating size under the pointer */
+        if (winMap[id].maxed) {
+          const p = winMap[id].prev || { w: winMap[id].origW, h: winMap[id].origH };
+          const w = Math.min(p.w, window.innerWidth - 32);
+          const h = Math.min(p.h, window.innerHeight - 80);
+          el.style.width = w + 'px';
+          el.style.height = h + 'px';
+          el.style.left = Math.max(0, Math.min(e.clientX - w / 2, window.innerWidth - w)) + 'px';
+          el.style.top = Math.max(0, e.clientY - 21) + 'px';
+          winMap[id].maxed = false;
+          winMap[id].w = w; winMap[id].h = h;
+        }
+        dragging = true; moved = false;
+        startX = e.clientX; startY = e.clientY;
+        dx = e.clientX - el.offsetLeft; dy = e.clientY - el.offsetTop;
+        /* Capture keeps the drag alive even when the pointer outruns the bar.
+           Synthetic events (tests) have no active pointer, hence the guard. */
+        try { bar.setPointerCapture(e.pointerId); } catch (err) { }
+        e.preventDefault();
       });
-      document.addEventListener('mousemove', e => {
+
+      bar.addEventListener('pointermove', e => {
         if (!dragging) return;
+        /* Ignore sub-6px jitters so plain clicks near an edge never snap */
+        if (!moved && Math.hypot(e.clientX - startX, e.clientY - startY) < 6) return;
+        moved = true;
         let nx = e.clientX - dx, ny = e.clientY - dy;
         nx = Math.max(0, Math.min(nx, window.innerWidth - el.offsetWidth));
         ny = Math.max(0, Math.min(ny, window.innerHeight - el.offsetHeight - 50));
         el.style.left = nx + 'px'; el.style.top = ny + 'px';
+        zone = snapZone(e.clientX, e.clientY);
+        showGhost(zone);
       });
-      document.addEventListener('mouseup', () => { dragging = false; });
+
+      const endDrag = () => {
+        if (!dragging) return;
+        dragging = false;
+        showGhost(null);
+        if (moved && zone) applySnap(id, zone);
+        zone = null;
+      };
+      bar.addEventListener('pointerup', endDrag);
+      bar.addEventListener('pointercancel', endDrag);
+
+      /* Classic OS gesture: double-click the title bar to maximize/restore */
+      bar.addEventListener('dblclick', e => {
+        if (e.target.closest('.wClose')) return;
+        toggleMax(id);
+      });
     }
 
-    /* ── resize ─────────────────────────────────────────── */
+    /* ── resize (pointer events cover mouse AND touch) ──── */
     function initRes(id) {
       const rh = document.getElementById('r-' + id);
       const el = winMap[id].el;
       let resizing = false, sx = 0, sy = 0, sw = 0, sh = 0;
-      rh.addEventListener('mousedown', e => {
+
+      rh.addEventListener('pointerdown', e => {
         if (winMap[id].maxed) return;
         resizing = true; sx = e.clientX; sy = e.clientY;
         sw = el.offsetWidth; sh = el.offsetHeight;
+        try { rh.setPointerCapture(e.pointerId); } catch (err) { }
         e.preventDefault(); e.stopPropagation();
       });
-      document.addEventListener('mousemove', e => {
+
+      rh.addEventListener('pointermove', e => {
         if (!resizing) return;
         el.style.width = Math.max(240, sw + e.clientX - sx) + 'px';
         el.style.height = Math.max(140, sh + e.clientY - sy) + 'px';
       });
-      document.addEventListener('mouseup', () => { 
-          if(resizing && winMap[id]) {
-            const b = el.getBoundingClientRect();
-            winMap[id].w = b.width;
-            winMap[id].h = b.height;
-          }
-          resizing = false; 
-      });
+
+      const endRes = () => {
+        if (!resizing) return;
+        resizing = false;
+        const b = el.getBoundingClientRect();
+        winMap[id].w = b.width;
+        winMap[id].h = b.height;
+      };
+      rh.addEventListener('pointerup', endRes);
+      rh.addEventListener('pointercancel', endRes);
     }
 
     /* ── desktop icons ──────────────────────────────────── */
