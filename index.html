@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title id="pgTitle">your desktop ✦</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Nunito:wght@400;600;700;800;900&family=Syne:wght@700;800&display=swap"
     rel="stylesheet" />
@@ -44,9 +45,9 @@
       ],
 
       gallery: [
-        { img: "images/lights.jpg", caption: "From a workshop held by the Monash Photography Society." },
-        { img: "images/scouts.JPG", caption: "From the Petaling Perdana Scouts 80KM Hike 2025." },
-        { img: "images/eucharist.JPG", caption: "From a church camp in 2025." },
+        { img: "images/lights.webp", caption: "From a workshop held by the Monash Photography Society." },
+        { img: "images/scouts.webp", caption: "From the Petaling Perdana Scouts 80KM Hike 2025." },
+        { img: "images/eucharist.webp", caption: "From a church camp in 2025." },
       ],
 
       faq: [
@@ -877,10 +878,48 @@
       .lGrid { grid-template-columns: 1fr; }
       .win { min-width: 260px; }
     }
+    /* ── loading spinner ── */
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: var(--desk);
+      transition: opacity .35s;
+    }
+    #loader.done {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #loader .spinner {
+      width: 42px;
+      height: 42px;
+      border: 4px solid color-mix(in srgb, var(--acc) 25%, transparent);
+      border-top-color: var(--acc);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    #loader .loaderTxt {
+      font-family: var(--fontHd);
+      font-size: .8rem;
+      color: var(--txt2);
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 
 <body>
+
+  <div id="loader">
+    <div class="spinner"></div>
+    <div class="loaderTxt">loading…</div>
+  </div>
 
   <!-- Controls strictly packed into a flex container for the top-left -->
   <div class="topCtrl">
@@ -910,7 +949,13 @@
   </div>
 
   <script type="module">
-    import { renderArticlesHtml, openArticleWindow } from './src/articles.js';
+    /* Articles pull in supabase/marked/dompurify — load them lazily so they
+       stay off the critical path. The import fires once, after first paint. */
+    let articlesModPromise = null;
+    function loadArticlesMod() {
+      if (!articlesModPromise) articlesModPromise = import('./src/articles.js');
+      return articlesModPromise;
+    }
     /* ── apply CFG colors ──────────────────────────────── */
     /* Updating CSS root vars to apply the user's CFG colors */
     document.documentElement.style.setProperty('--acc', CFG.accent);
@@ -1298,7 +1343,7 @@
       const gHtml = galleryPool.map(g => {
         const hi = g.img && g.img.length;
         return `<div class="gItem" onclick="${hi ? `openLb('${g.img}')` : ''}">
-      ${hi ? `<img src="${g.img}" alt="${g.caption}" loading="lazy"/>` : '🖼'}
+      ${hi ? `<img src="${g.img}" alt="${g.caption}" loading="lazy" decoding="async"/>` : '🖼'}
       <div class="gCap"><span>${g.caption}</span></div>
     </div>`;
       }).join('');
@@ -1343,8 +1388,27 @@
     </div>`;
     }
 
-    async function bArticles() {
-      return await renderArticlesHtml();
+    /* The articles window opens instantly with a spinner; the real content
+       (a Supabase fetch) streams in once the lazy module resolves. */
+    function bArticles() {
+      return `<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0">
+        <div class="spinner" style="width:30px;height:30px;border-width:3px"></div>
+        <p style="font-size:.78rem;color:var(--txt2)">loading articles…</p>
+      </div>`;
+    }
+
+    async function hydrateArticles() {
+      try {
+        const mod = await loadArticlesMod();
+        window.openArticleWindow = mod.openArticleWindow;
+        const html = await mod.renderArticlesHtml();
+        const body = document.getElementById('wb-articles');
+        if (body) body.innerHTML = html;
+      } catch (err) {
+        console.error('Failed to load articles:', err);
+        const body = document.getElementById('wb-articles');
+        if (body) body.innerHTML = `<p style="font-size:.8rem;color:var(--txt2)">couldn't load articles right now — try again later.</p>`;
+      }
     }
 
     /* ── init ─────────────────────────────────────────────── */
@@ -1370,9 +1434,9 @@
       const htmlMap = { about: bAbout, articles: bArticles, projects: bProjects, links: bLinks, faq: bFaq, contact: bContact };
 
       // 4. Create each window using our mkWin helper function!
+      // All builders are synchronous now, so nothing here waits on the network.
       for (const d of defs) {
-        const htmlContent = await htmlMap[d.id]();
-        mkWin(d.id, d.title, d.icon, d.w, d.h, 0, 0, htmlContent);
+        mkWin(d.id, d.title, d.icon, d.w, d.h, 0, 0, htmlMap[d.id]());
         // Hide immediately to prevent auto-opening
         closeWin(d.id);
       }
@@ -1411,6 +1475,10 @@
 
       // Now that all HTML is placed inside the active site, bind the SFX system automatically
       bindSfx();
+
+      // 8. Desktop is ready — fade the loader out, then fetch articles in the background
+      document.getElementById('loader').classList.add('done');
+      hydrateArticles();
     }
 
     // Expose functions to global scope for inline HTML handlers
@@ -1420,7 +1488,11 @@
     window.closeLb = closeLb;
     window.tglFaq = tglFaq;
     window.mkWin = mkWin;
-    window.openArticleWindow = openArticleWindow;
+    // Stub until the lazy articles module replaces it in hydrateArticles()
+    window.openArticleWindow = async (id) => {
+      const mod = await loadArticlesMod();
+      return mod.openArticleWindow(id);
+    };
 
     init();
   </script>
