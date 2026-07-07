@@ -969,6 +969,8 @@
       isDark = dark;
       document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
       document.documentElement.style.setProperty('--acc', dark ? CFG.accentDk : CFG.accent);
+      document.documentElement.style.setProperty('--desk', dark ? CFG.desktopBgDk : CFG.desktopBg);
+      document.documentElement.style.setProperty('--winBg', dark ? CFG.winBgDk : CFG.winBg);
       document.documentElement.style.setProperty('--deskWave', dark ? '#1e293b' : '#bae6fd');
       themeBtn.textContent = dark ? '☀️' : '🌙';
       localStorage.setItem('theme', dark ? 'dark' : 'light');
