@@ -4,7 +4,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title id="pgTitle">your desktop ✦</title>
+  <title id="pgTitle">Francis P.N. — CS &amp; Data Science, Monash University Malaysia</title>
+
+  <!-- Static so link unfurlers (LinkedIn, WhatsApp, Slack) see them without running JS. -->
+  <meta name="description"
+    content="Francis P.N. — Computer Science in Data Science at Monash University Malaysia, and a theological writer. Research projects, data tooling, and essays." />
+  <link rel="canonical" href="https://fpn-portfolio.vercel.app/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Francis P.N." />
+  <meta property="og:title" content="Francis P.N. | CS &amp; Data Science, Monash University Malaysia" />
+  <meta property="og:description"
+    content="Francis P.N. — Computer Science in Data Science at Monash University Malaysia, and a theological writer. Research projects, data tooling, and essays." />
+  <meta property="og:image" content="https://fpn-portfolio.vercel.app/og-cover.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Francis P.N. — CS &amp; Data Science, Monash University Malaysia" />
+  <meta property="og:url" content="https://fpn-portfolio.vercel.app/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Francis P.N. | CS &amp; Data Science, Monash University Malaysia" />
+  <meta name="twitter:description"
+    content="Francis P.N. — Computer Science in Data Science at Monash University Malaysia, and a theological writer. Research projects, data tooling, and essays." />
+  <meta name="twitter:image" content="https://fpn-portfolio.vercel.app/og-cover.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -18,14 +39,16 @@
     const CFG = {
       name: "francis",
       nameKanji: "",
-      tagline: "passionate in journalism & storytelling",
-      location: "Kuala Lumpur, Malaysia",
+      tagline: "Data Science @ Monash. Theology, code, and community.",
+      location: "Kuala Lumpur, Malaysia (UTC+8)",
       email: "francis.pn.29757@gmail.com",
       avatar: "",
       avatarEmoji: "🖊️",
-      desktopTitle: "francis's desktop",
+      desktopTitle: "Francis P.N. — CS & Data Science, Monash University Malaysia",
 
-      aboutBio: `hi! i'm <strong>Francis</strong> — I'm currently studying Computer Science in Data Science at Monash University Malaysia, and I'm deeply passionate about journalism, storytelling, and community building.<br><br>I also dedicate a lot of my time to youth leadership and mentoring, serving as Interim Leader for the 46th Petaling Perdana Scout Troop and volunteering at the Church of the Assumption as a teacher.`,
+      /* TODO(Francis): the [N] placeholders below are the only figures I could not
+         verify. Replace them before the next deploy — see R-05 of the PRD. */
+      aboutBio: `hi! i'm <strong>Francis</strong> — I'm reading Computer Science in Data Science at Monash University Malaysia (2025–present), working mainly in Python, SQL and data analytics.<br><br>Alongside coursework I ran a paid research internship building the <strong>Malaysia English Church Directory</strong>: a structured nationwide dataset of 800+ churches, senior pastors and denominational affiliations, compiled with Python and openpyxl and verified church-by-church against primary sources.<br><br>I'm <strong>Interim Leader of the 46th Petaling Perdana Scout Troop</strong>, leading [N] scouts since [MONTH YEAR] and organising the Petaling Perdana 80KM Hike 2025 for [N] participants.<br><br>I teach <strong>catechism at the Church of the Assumption, Petaling Jaya</strong> — Confirmation preparation for 15–16 year olds, a class of roughly [N] students, running weekly through the academic year.<br><br>I also write on theology and reflective practice, and shoot event photography on a Canon 60D.`,
       edu: "Bachelors of Computer Science in Data Science",
       eduNote: "(2025 - Present) Monash University Malaysia",
       interests: ["Research Projects", "Theology", "Game Development", "Journalism and Storytelling", "Photography", "Bouldering"],
@@ -37,23 +60,87 @@
         { label: "email me", emoji: "✉️", url: "mailto:francis.pn.29757@gmail.com" },
       ],
 
-      tools: ["Event Photography", "Photo Editing", "Research Skills", "Writing", "Journalism"],
-      Skills: ["Data Analytics", "Python", "Public Speaking", "Mentorship"],
-
-      projects: [
-        { title: "Project Avaris", img: "", desc: "A work in progress RPG inspired by games like Octopath Traveller and Final Fantasy", url: "#"},
+      /* Skills are split by category, and every entry carries a proficiency level. */
+      skillsTechnical: [
+        { name: "Python", level: "Intermediate" },
+        { name: "SQL — Oracle & MongoDB", level: "Intermediate" },
+        { name: "Data Analytics", level: "Intermediate" },
+        { name: "Web Scraping — openpyxl / requests", level: "Intermediate" },
+        { name: "React / Frontend", level: "Basic" },
+        { name: "Git & GitHub", level: "Basic" },
+      ],
+      skillsCreative: [
+        { name: "Theological Writing", level: "Advanced" },
+        { name: "Research & Verification Methodology", level: "Advanced" },
+        { name: "Event Photography — Canon 60D", level: "Intermediate" },
+        { name: "Public Speaking", level: "Intermediate" },
+        { name: "Mentorship & Youth Leadership", level: "Intermediate" },
       ],
 
+      projects: [
+        {
+          title: "Malaysia English Church Directory",
+          img: "", stack: "Python · openpyxl · web scraping · manual verification",
+          desc: "A nationwide research project compiling a structured directory of 800+ Malaysian churches, senior pastors and denominational data, verified source-by-source.",
+          /* TODO(Francis): no repo or write-up exists for this yet — publish one and
+             replace this url, or the card renders without a link. See R-02. */
+          url: "", btn: "write-up coming soon",
+        },
+        {
+          title: "easyPresent",
+          img: "", stack: "Electron · C++ · hardware-accelerated rendering",
+          desc: "An open-source ProPresenter alternative pairing an Electron frontend with a C++ rendering engine for live church presentation.",
+          url: "https://github.com/francis-p-n/easyPresent", btn: "view source",
+        },
+        {
+          title: "Jerusalem Bible API",
+          img: "", stack: "REST API · passage parsing · full-text search",
+          desc: "An API serving the complete 73-book Catholic canon in English and Chinese, with intelligent passage parsing and keyword search.",
+          url: "https://github.com/francis-p-n/jerusalemBibleApi", btn: "view source",
+        },
+        {
+          title: "Warframe Market Predictor",
+          img: "", stack: "Python · statistical analysis · WhatsApp API",
+          desc: "A background service that tracks live marketplace prices, runs statistical analysis over the history, and pushes daily summaries to WhatsApp.",
+          url: "https://github.com/francis-p-n/warframe-market-predictor", btn: "view source",
+        },
+        {
+          title: "fpn-portfolio (this site)",
+          img: "", stack: "Vanilla JS · Vite · Supabase",
+          desc: "The desktop-OS interface you're using now: a hand-rolled window manager, markdown article engine and Supabase-backed publishing pipeline.",
+          url: "https://github.com/francis-p-n/Portfolio-Site", btn: "view source",
+        },
+        {
+          title: "Project Avaris",
+          img: "", stack: "Game design · in development", wip: true,
+          /* TODO(Francis): R-02 requires at least one design doc, screenshot or design
+             asset for Avaris. Drop the file in public/images and set `img` above. */
+          desc: "An RPG in early development, drawing on Octopath Traveler and Final Fantasy for its combat and narrative structure.",
+          url: "", btn: "",
+        },
+      ],
+
+      /* Photo sets are surfaced in their own window; each set records event, date and body. */
       gallery: [
-        { img: "images/lights.webp", caption: "From a workshop held by the Monash Photography Society." },
-        { img: "images/scouts.webp", caption: "From the Petaling Perdana Scouts 80KM Hike 2025." },
-        { img: "images/eucharist.webp", caption: "From a church camp in 2025." },
+        {
+          event: "Monash Photography Society workshop", date: "2025", camera: "Canon 60D",
+          photos: [{ img: "images/lights.webp", caption: "Long-exposure light study from the workshop." }],
+        },
+        {
+          event: "Petaling Perdana Scouts 80KM Hike", date: "2025", camera: "Canon 60D",
+          photos: [{ img: "images/scouts.webp", caption: "On the trail during the 80KM Hike." }],
+        },
+        {
+          event: "Church camp", date: "2025", camera: "Canon 60D",
+          photos: [{ img: "images/eucharist.webp", caption: "Eucharistic adoration at the closing night." }],
+        },
       ],
 
       faq: [
-        { q: "What is your main field of study?", a: "I'm currently pursuing Data Science at Monash University Malaysia." },
-        { q: "Are you involved in any extracurriculars?", a: "Yes! Quite a lot. I'm the IT Secretary at Monash, an Interim Scout Leader, and a catechism teacher." },
-        { q: "What are your core interests?", a: "Outside of studying, I'm passionate about journalism, theological writing, and game development." },
+        { q: "Are you available for freelance or contract work?", a: "Yes — I take on research projects, writing commissions, event photography and small data/scripting work alongside my studies. Term-time capacity is limited, so longer lead times help." },
+        { q: "Do you collaborate on open-source or side projects?", a: "Yes. I'm most interested in tools for churches and student communities, Python data tooling, and anything involving structured research datasets." },
+        { q: "What time zone are you in and how do you prefer to be contacted?", a: "Kuala Lumpur, UTC+8. Email is best — I usually reply within 2–3 days." },
+        { q: "What are you currently working on?", a: "Forming the Monash Catholic Society (MCS), the <em>Life to the Fullness</em> writing project, Project Avaris (an RPG), and a few hardware side-projects." },
       ],
 
       articles: [
@@ -507,7 +594,39 @@
       transition: background .35s, border-color .35s
     }
 
+    /* the proficiency level rides inside the pill, so no skill reads as a bare keyword */
+    .pillLvl {
+      display: inline-block;
+      margin-left: 6px;
+      padding-left: 6px;
+      border-left: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+      color: var(--acc);
+      font-size: .66rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+
     /* gallery */
+    .gSet {
+      margin-bottom: 18px
+    }
+
+    .gSetTit {
+      font-family: var(--fontHd);
+      font-size: .88rem;
+      font-weight: 700;
+      color: var(--txt)
+    }
+
+    .gSetMeta {
+      font-size: .7rem;
+      font-weight: 700;
+      color: var(--acc);
+      letter-spacing: .4px;
+      margin-bottom: 7px
+    }
+
     .gGrid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -599,6 +718,38 @@
       font-weight: 700;
       color: var(--txt);
       margin-bottom: 4px
+    }
+
+    .pStack {
+      font-family: var(--fontHd);
+      font-size: .68rem;
+      font-weight: 700;
+      color: var(--acc);
+      letter-spacing: .3px;
+      margin-bottom: 6px
+    }
+
+    .wipTag {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      font-family: var(--font);
+      font-size: .62rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--txt2);
+      vertical-align: middle
+    }
+
+    /* a project with nothing to link to yet gets a flat, non-clickable label */
+    .btnSmOff {
+      background: none;
+      color: var(--txt2);
+      border: 1.5px dashed var(--border);
+      cursor: default
     }
 
     .pDsc {
@@ -1334,42 +1485,63 @@
     <p style="font-size:.68rem;color:var(--txt2);margin-top:12px">clicking any link opens a new tab ✦</p>`;
     }
 
+    /* A skill pill always carries its proficiency level — never a bare keyword. */
+    function skillPills(pool) {
+      return (pool || []).map(s =>
+        `<span class="pill">${s.name}<span class="pillLvl">${s.level}</span></span>`
+      ).join('');
+    }
+
     function bProjects() {
-      const toolsPool = CFG.tools || [];
-      const skillsPool = CFG.Skills || CFG.skills || [];
-      const galleryPool = CFG.gallery || [];
       const projectsPool = CFG.projects || [];
-      
-      const tPills = toolsPool.map(t => `<span class="pill">${t}</span>`).join('');
-      const dPills = skillsPool.map(s => `<span class="pill">${s}</span>`).join('');
-      const gHtml = galleryPool.map(g => {
-        const hi = g.img && g.img.length;
-        return `<div class="gItem" onclick="${hi ? `openLb('${g.img}')` : ''}">
-      ${hi ? `<img src="${g.img}" alt="${g.caption}" loading="lazy" decoding="async"/>` : '🖼'}
-      <div class="gCap"><span>${g.caption}</span></div>
-    </div>`;
-      }).join('');
+
       const pHtml = projectsPool.map(p => {
         const hi = p.img && p.img.length;
+        const link = p.url
+          ? `<a href="${p.url}" target="_blank" rel="noopener" class="btnSm">${p.btn || 'view project'}</a>`
+          : (p.btn ? `<span class="btnSm btnSmOff">${p.btn}</span>` : '');
         return `<div class="pCard">
       <div class="pImg">${hi ? `<img src="${p.img}" alt="${p.title}"/>` : '💻'}</div>
-      <p class="pTit">${p.title}</p>
+      <p class="pTit">${p.title}${p.wip ? `<span class="wipTag">work in progress</span>` : ''}</p>
+      ${p.stack ? `<p class="pStack">${p.stack}</p>` : ''}
       <p class="pDsc">${p.desc}</p>
-      <a href="${p.url}" target="_blank" class="btnSm">${p.btn}</a>
+      ${link}
     </div>`;
       }).join('');
+
       return `
-    <span class="sl">skills</span><div class="pRow">${tPills}</div>
-    <span class="sl">technical skills</span><div class="pRow">${dPills}</div>
+    <span class="sl">technical skills</span>
+    <div class="pRow">${skillPills(CFG.skillsTechnical)}</div>
+    <span class="sl">creative &amp; leadership skills</span>
+    <div class="pRow">${skillPills(CFG.skillsCreative)}</div>
     <hr/>
-    <span class="sl">photo portfolio</span>
-    <div class="gGrid" style="margin-bottom:14px">${gHtml}</div>
-    <span class="sl">other projects</span>${pHtml}`;
+    <span class="sl">projects</span>${pHtml}`;
+    }
+
+    /* Photography lives in its own window — it's a verifiable credential, not a
+       footnote inside the projects grid. */
+    function bGallery() {
+      const sets = CFG.gallery || [];
+      const body = sets.map(s => {
+        const meta = [s.date, s.camera].filter(Boolean).join(' · ');
+        const shots = (s.photos || []).map(p => `<div class="gItem" onclick="openLb('${p.img}')">
+        <img src="${p.img}" alt="${p.caption}" loading="lazy" decoding="async"/>
+        <div class="gCap"><span>${p.caption}</span></div>
+      </div>`).join('');
+        return `<div class="gSet">
+      <p class="gSetTit">${s.event}</p>
+      ${meta ? `<p class="gSetMeta">${meta}</p>` : ''}
+      <div class="gGrid">${shots}</div>
+    </div>`;
+      }).join('');
+      return `<span class="sl">photo portfolio</span>
+    <p style="font-size:.74rem;color:var(--txt2);margin-bottom:11px">event photography, shot on a Canon 60D</p>
+    ${body}`;
     }
 
     function bFaq() {
       const faqPool = CFG.faq || [];
-      return `<span class="sl">frequently asked questions</span>
+      return `<span class="sl">working with me</span>
     <div style="margin-top:4px">
     ${faqPool.map((f, i) => `
       <div class="fItem">
@@ -1427,13 +1599,14 @@
         { id: 'about', title: 'about', icon: '👤', w: 580, h: 440 },
         { id: 'articles', title: 'articles', icon: '📰', w: 320, h: 420 },
         { id: 'projects', title: 'projects', icon: '🎨', w: 580, h: 440 },
+        { id: 'photos', title: 'photos', icon: '📷', w: 560, h: 440 },
         { id: 'links', title: 'links', icon: '🔗', w: 300, h: 240 },
-        { id: 'faq', title: 'faq', icon: '❓', w: 310, h: 320 },
+        { id: 'faq', title: 'working with me', icon: '❓', w: 340, h: 340 },
         { id: 'contact', title: 'contact', icon: '✉️', w: 290, h: 280 },
       ];
 
       // 3. Map each window ID to the function that generates its HTML content
-      const htmlMap = { about: bAbout, articles: bArticles, projects: bProjects, links: bLinks, faq: bFaq, contact: bContact };
+      const htmlMap = { about: bAbout, articles: bArticles, projects: bProjects, photos: bGallery, links: bLinks, faq: bFaq, contact: bContact };
 
       // 4. Create each window using our mkWin helper function!
       // All builders are synchronous now, so nothing here waits on the network.
@@ -1453,12 +1626,12 @@
       const deskEl = document.getElementById('desk');
       
       const deskNavBtns = [
-        ['about', '👤'], ['articles', '📰'], ['projects', '🎨'],
-        ['links', '🔗'], ['faq', '❓'], ['contact', '✉️'],
-      ].map(([id, ico]) => `
+        ['about', '👤'], ['articles', '📰'], ['projects', '🎨'], ['photos', '📷'],
+        ['links', '🔗'], ['faq', '❓', 'working with me'], ['contact', '✉️'],
+      ].map(([id, ico, label = id]) => `
         <button onclick="openWin('${id}')" style="background:color-mix(in srgb, var(--acc) 10%, var(--winBg)); border:1.5px solid var(--border); border-radius:12px; padding:15px; cursor:pointer; font-family:var(--font); font-weight:700; font-size:.85rem; color:var(--txt); display:flex; flex-direction:column; align-items:center; gap:8px; transition:all .2s;" onmouseover="this.style.borderColor='var(--acc)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform=''">
           <span style="font-size:1.6rem">${ico}</span>
-          <span>${id}</span>
+          <span>${label}</span>
         </button>
       `).join('');
 
