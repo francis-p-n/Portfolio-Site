@@ -105,10 +105,10 @@
           url: "", btn: "",
         },
         {
-          title: "Hotel project (with Shariq Nauman)",
-          img: "", stack: "",
-          desc: "",
-          url: "", btn: "",
+          title: "WeBoosta",
+          img: "", stack: "Next.js · FastAPI · LangGraph · Gemini · Supabase",
+          desc: "An AI-search optimisation platform for hotels, built with Shariq Nauman for UMHackathon 2026. Multi-agent workflows simulate how AI travel agents evaluate a property, then generate machine-readable content so the hotel stays discoverable.",
+          url: "https://github.com/ShariqNauman/aeo-optimizer", btn: "view source",
         },
       ],
 
@@ -1097,6 +1097,7 @@
     .hasIcon svg [fill]:not([fill="none"]) { fill: currentColor; }
     .deskIcoGlyph.hasIcon { width: 46px; height: 46px; }
     .dockGlyph.hasIcon { width: 26px; height: 26px; }
+    .topBtn .hasIcon { width: 24px; height: 24px; }
 
     /* ── dock ── */
     #dock {
@@ -1183,8 +1184,8 @@
 
   <!-- Controls strictly packed into a flex container for the top-left -->
   <div class="topCtrl">
-    <button class="topBtn" id="sfxBtn">🔊</button>
-    <button class="topBtn" id="themeBtn">🌙</button>
+    <button class="topBtn" id="sfxBtn"><span data-icon="sfx-on">🔊</span></button>
+    <button class="topBtn" id="themeBtn"><span data-icon="theme-dark">🌙</span></button>
   </div>
 
   <div id="desk">
@@ -1232,7 +1233,7 @@
       document.documentElement.style.setProperty('--desk', dark ? CFG.desktopBgDk : CFG.desktopBg);
       document.documentElement.style.setProperty('--winBg', dark ? CFG.winBgDk : CFG.winBg);
       document.documentElement.style.setProperty('--deskWave', dark ? '#1e293b' : '#bae6fd');
-      themeBtn.textContent = dark ? '☀️' : '🌙';
+      paintIcon(themeBtn.firstElementChild, dark ? 'theme-light' : 'theme-dark', dark ? '☀️' : '🌙');
       localStorage.setItem('theme', dark ? 'dark' : 'light');
     }
     themeBtn.onclick = () => setTheme(!isDark);
@@ -1252,7 +1253,7 @@
     const sfxBtn = document.getElementById('sfxBtn');
     sfxBtn.onclick = () => {
       sfxEnabled = !sfxEnabled;
-      sfxBtn.textContent = sfxEnabled ? '🔊' : '🔇';
+      paintIcon(sfxBtn.firstElementChild, sfxEnabled ? 'sfx-on' : 'sfx-off', sfxEnabled ? '🔊' : '🔇');
     };
 
     function playSnd(audio) {
@@ -1364,14 +1365,43 @@
       return iconCache[name];
     }
 
+    /* The toggles swap between two icons, so both states are preloaded even
+       though only one of each is in the DOM at hydration time */
+    const EXTRA_ICONS = ['theme-light', 'sfx-off'];
+
+    /* The same icon can be on screen twice (nav and dock), so every injection
+       gets its own ids — duplicate ids are invalid and make clip-path
+       references resolve to whichever copy happens to be first in the document */
+    let iconSeq = 0;
+    function uniquifyIds(svg) {
+      const n = ++iconSeq;
+      return svg
+        .replace(/id="([^"]+)"/g, (_, id) => `id="${id}-${n}"`)
+        .replace(/url\(#([^)]+)\)/g, (_, id) => `url(#${id}-${n})`);
+    }
+
+    /* Paints one slot: the SVG if we have it, otherwise the emoji it falls back to */
+    function paintIcon(el, name, emoji) {
+      if (!el) return;
+      el.dataset.icon = name;
+      const svg = iconCache[name];
+      if (svg) {
+        el.innerHTML = uniquifyIds(svg);
+        el.classList.add('hasIcon');
+      } else {
+        el.textContent = emoji;
+        el.classList.remove('hasIcon');
+      }
+    }
+
     async function hydrateIcons() {
       const slots = [...document.querySelectorAll('[data-icon]')];
-      const names = [...new Set(slots.map(s => s.dataset.icon))];
+      const names = [...new Set([...slots.map(s => s.dataset.icon), ...EXTRA_ICONS])];
       await Promise.all(names.map(fetchIcon));
       slots.forEach(slot => {
         const svg = iconCache[slot.dataset.icon];
         if (!svg) return;
-        slot.innerHTML = svg;
+        slot.innerHTML = uniquifyIds(svg);
         slot.classList.add('hasIcon');
       });
     }
