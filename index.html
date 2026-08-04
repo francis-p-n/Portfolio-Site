@@ -999,11 +999,12 @@
       justify-content: center;
     }
 
-    .deskWrap {
-      display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; position: absolute; inset: 0; pointer-events: none; z-index: 5;
+    /* The home window's body centres its contents rather than top-aligning them */
+    #wb-home {
+      display: flex; align-items: center; justify-content: center;
     }
     .deskCenter {
-      pointer-events: auto; text-align: center; padding: 0 20px;
+      text-align: center; padding: 0 20px;
     }
     .deskAvatar {
       width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); margin-bottom: 15px; background: var(--winBg); box-shadow: 0 8px 16px rgba(0,0,0,0.1);
@@ -1038,11 +1039,41 @@
     }
     .deskIcoLbl { font-weight: 700; font-size: .85rem; }
 
+    /* ── dock ── */
+    #dock {
+      position: fixed; left: 50%; transform: translateX(-50%);
+      bottom: 14px; z-index: 480;
+      display: flex; gap: 6px; padding: 6px 8px;
+      background: color-mix(in srgb, var(--winBg) 80%, transparent);
+      backdrop-filter: blur(8px);
+      border: 2px solid var(--border); border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(0,0,0,.15);
+      transition: background .35s, border-color .35s;
+    }
+    .dockBtn {
+      background: none; border: none; cursor: pointer; padding: 5px 7px 3px;
+      border-radius: 9px; display: flex; flex-direction: column; align-items: center; gap: 3px;
+      transition: transform .2s, background .2s;
+    }
+    .dockBtn:hover, .dockBtn:focus-visible {
+      transform: translateY(-3px);
+      background: color-mix(in srgb, var(--acc) 15%, transparent);
+    }
+    .dockBtn:active { transform: translateY(0) scale(.92); }
+    .dockGlyph { font-size: 1.5rem; line-height: 1; }
+    .dockDot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: transparent; transition: background .2s;
+    }
+    .dockBtn.dockOpen .dockDot { background: var(--acc); }
+
     @media (max-width: 600px) {
       .deskTitle { font-size: 2.2rem; }
       .deskSub { font-size: 1rem; }
       .deskGrid { gap: 6px 2px; max-width: 300px; }
       .deskIcon { flex: 0 0 92px; }
+      #dock { gap: 2px; padding: 5px 6px; bottom: 10px; }
+      .dockGlyph { font-size: 1.25rem; }
       .gGrid { grid-template-columns: repeat(2, 1fr); }
       .lGrid { grid-template-columns: 1fr; }
       .win { min-width: 260px; }
@@ -1247,7 +1278,43 @@
     /* Completely hides a window returning user to the desktop (like Sharyap modal closes) */
     function closeWin(id) {
       winMap[id].el.classList.add('hidden');
+      /* A put-away window must not stay 'focused', or the dock's toggle
+         would need two clicks to bring it back */
+      winMap[id].el.classList.remove('focused');
       winMap[id].minned = true;
+      syncDock();
+    }
+
+    /* ── dock ───────────────────────────────────────────── */
+    /* A closed window isn't gone, it's just put away — the dock is where it
+       lives in the meantime, and how you get it back. */
+    function mkDock(defs) {
+      const dock = document.createElement('div');
+      dock.id = 'dock';
+      dock.innerHTML = defs.map(d => `
+        <button class="dockBtn" id="dk-${d.id}" title="${d.title}" aria-label="${d.title}" onclick="toggleWin('${d.id}')">
+          <span class="dockGlyph">${d.icon}</span>
+          <span class="dockDot"></span>
+        </button>`).join('');
+      document.body.appendChild(dock);
+      syncDock();
+    }
+
+    /* Lit dot = window is open somewhere on the desktop */
+    function syncDock() {
+      Object.keys(winMap).forEach(id => {
+        const btn = document.getElementById('dk-' + id);
+        if (btn) btn.classList.toggle('dockOpen', !winMap[id].minned);
+      });
+    }
+
+    /* Dock click: restore if put away, put away if already focused, else raise */
+    function toggleWin(id) {
+      const w = winMap[id];
+      if (!w) return;
+      if (w.minned) openWin(id);
+      else if (w.el.classList.contains('focused')) closeWin(id);
+      else focusWin(id);
     }
 
     function openWin(id) {
@@ -1271,6 +1338,7 @@
         winMap[id].el.addEventListener('animationend', () => winMap[id].el.classList.remove('opening'), { once: true });
         winMap[id].minned = false;
         focusWin(id);
+        syncDock();
       }
     }
 
@@ -1464,6 +1532,28 @@
 
     /* ── Sharyap Home Screen UI omitted as a window, and will be rendered onto the desktop instead! ── */
 
+    /* The landing view is itself a window — the desktop underneath stays empty
+       wallpaper, so the whole site reads as one OS rather than a page with popups. */
+    const HOME_NAV = [
+      ['about', '👤'], ['articles', '📰'], ['projects', '🎨'],
+      ['links', '🔗'], ['faq', '❓', 'working with me'], ['contact', '✉️'],
+    ];
+
+    function bHome() {
+      const navBtns = HOME_NAV.map(([id, ico, label = id]) => `
+        <button class="deskIcon" onclick="openWin('${id}')">
+          <span class="deskIcoGlyph">${ico}</span>
+          <span class="deskIcoLbl">${label}</span>
+        </button>`).join('');
+      return `
+    <div class="deskCenter">
+      ${CFG.avatar ? `<img src="${CFG.avatar}" class="deskAvatar"/>` : `<div class="deskEmoji">${CFG.avatarEmoji}</div>`}
+      <h1 class="deskTitle">hi! i'm <span style="color:var(--acc); text-transform:lowercase">${CFG.name}</span></h1>
+      <p class="deskSub">${CFG.tagline}</p>
+      <div class="deskGrid">${navBtns}</div>
+    </div>`;
+    }
+
     function bAbout() {
       const intPool = CFG.interests || [];
       const lngPool = CFG.langs || [];
@@ -1613,8 +1703,10 @@
       const vw = window.innerWidth;
       const vh = window.innerHeight;
 
-      // 2. Define all the windows we want to create. Note we no longer need the 'home' window.
+      // 2. Define all the windows we want to create. 'home' is the hero itself —
+      //    on the reference site even the landing card is a real window.
       const defs = [
+        { id: 'home', title: 'home', icon: '🏠', w: 620, h: 515 },
         { id: 'about', title: 'about', icon: '👤', w: 580, h: 440 },
         { id: 'articles', title: 'articles', icon: '📰', w: 320, h: 420 },
         { id: 'projects', title: 'projects', icon: '🎨', w: 580, h: 440 },
@@ -1624,47 +1716,24 @@
       ];
 
       // 3. Map each window ID to the function that generates its HTML content
-      const htmlMap = { about: bAbout, articles: bArticles, projects: bProjects, links: bLinks, faq: bFaq, contact: bContact };
+      const htmlMap = { home: bHome, about: bAbout, articles: bArticles, projects: bProjects, links: bLinks, faq: bFaq, contact: bContact };
 
       // 4. Create each window using our mkWin helper function!
       // All builders are synchronous now, so nothing here waits on the network.
       for (const d of defs) {
         mkWin(d.id, d.title, d.icon, d.w, d.h, 0, 0, htmlMap[d.id]());
-        // Hide immediately to prevent auto-opening
-        closeWin(d.id);
+        // Hide immediately to prevent auto-opening — except home, which is the landing view
+        if (d.id !== 'home') closeWin(d.id);
       }
+
+      // 4b. Build the dock so every window has somewhere to be restored from
+      mkDock(defs);
 
       // 5. Fill out the 'About Me' bio automatically
       const bioEl = document.getElementById('abBio');
       if (bioEl) bioEl.innerHTML = CFG.aboutBio;
 
       // 6. Windows are now hidden during creation in the step above!
-
-      // 7. Render our gorgeous Sharyap-style floating center desktop interface!
-      const deskEl = document.getElementById('desk');
-      
-      const deskNavBtns = [
-        ['about', '👤'], ['articles', '📰'], ['projects', '🎨'],
-        ['links', '🔗'], ['faq', '❓', 'working with me'], ['contact', '✉️'],
-      ].map(([id, ico, label = id]) => `
-        <button class="deskIcon" onclick="openWin('${id}')">
-          <span class="deskIcoGlyph">${ico}</span>
-          <span class="deskIcoLbl">${label}</span>
-        </button>
-      `).join('');
-
-      deskEl.insertAdjacentHTML('beforeend', `
-        <div class="deskWrap">
-          <div class="deskCenter">
-             ${CFG.avatar ? `<img src="${CFG.avatar}" class="deskAvatar"/>` : `<div class="deskEmoji">${CFG.avatarEmoji}</div>`}
-             <h1 class="deskTitle">hi! i'm <span style="color:var(--acc); text-transform:lowercase">${CFG.name}</span></h1>
-             <p class="deskSub">${CFG.tagline}</p>
-             <div class="deskGrid">
-               ${deskNavBtns}
-             </div>
-          </div>
-        </div>
-      `);
 
       // Now that all HTML is placed inside the active site, bind the SFX system automatically
       bindSfx();
@@ -1676,6 +1745,7 @@
 
     // Expose functions to global scope for inline HTML handlers
     window.openWin = openWin;
+    window.toggleWin = toggleWin;
     window.closeWin = closeWin;
     window.openLb = openLb;
     window.closeLb = closeLb;
