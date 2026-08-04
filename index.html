@@ -79,14 +79,6 @@
 
       projects: [
         {
-          title: "Malaysia English Church Directory",
-          img: "", stack: "Python · openpyxl · web scraping · manual verification",
-          desc: "A nationwide research project compiling a structured directory of 800+ Malaysian churches, senior pastors and denominational data, verified source-by-source.",
-          /* TODO(Francis): no repo or write-up exists for this yet — publish one and
-             replace this url, or the card renders without a link. See R-02. */
-          url: "", btn: "write-up coming soon",
-        },
-        {
           title: "easyPresent",
           img: "", stack: "Electron · C++ · hardware-accelerated rendering",
           desc: "An open-source ProPresenter alternative pairing an Electron frontend with a C++ rendering engine for live church presentation.",
@@ -104,18 +96,18 @@
           desc: "A background service that tracks live marketplace prices, runs statistical analysis over the history, and pushes daily summaries to WhatsApp.",
           url: "https://github.com/francis-p-n/warframe-market-predictor", btn: "view source",
         },
+        /* TODO(Francis): fill in the stack, description and link for these two —
+           placeholders are in place so the cards render, but the copy is a guess. */
         {
-          title: "fpn-portfolio (this site)",
-          img: "", stack: "Vanilla JS · Vite · Supabase",
-          desc: "The desktop-OS interface you're using now: a hand-rolled window manager, markdown article engine and Supabase-backed publishing pipeline.",
-          url: "https://github.com/francis-p-n/Portfolio-Site", btn: "view source",
+          title: "MyHack",
+          img: "", stack: "",
+          desc: "",
+          url: "", btn: "",
         },
         {
-          title: "Project Avaris",
-          img: "", stack: "Game design · in development", wip: true,
-          /* TODO(Francis): R-02 requires at least one design doc, screenshot or design
-             asset for Avaris. Drop the file in public/images and set `img` above. */
-          desc: "An RPG in early development, drawing on Octopath Traveler and Final Fantasy for its combat and narrative structure.",
+          title: "Hotel project (with Shariq Nauman)",
+          img: "", stack: "",
+          desc: "",
           url: "", btn: "",
         },
       ],
@@ -1086,6 +1078,26 @@
     }
     .deskIcoLbl { font-weight: 700; font-size: .85rem; }
 
+    /* Hand-drawn SVGs inherit the current text colour so they follow the theme */
+    .hasIcon {
+      display: block;
+      color: var(--txt);
+    }
+    .hasIcon svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+    /* The colour attribute often sits on the <svg> root and is inherited from
+       there, so both the root and its descendants have to be rewritten */
+    .hasIcon svg[stroke]:not([stroke="none"]),
+    .hasIcon svg [stroke]:not([stroke="none"]) { stroke: currentColor; }
+    .hasIcon svg[fill]:not([fill="none"]),
+    .hasIcon svg [fill]:not([fill="none"]) { fill: currentColor; }
+    .deskIcoGlyph.hasIcon { width: 46px; height: 46px; }
+    .dockGlyph.hasIcon { width: 26px; height: 26px; }
+
     /* ── dock ── */
     #dock {
       position: fixed; left: 50%; transform: translateX(-50%);
@@ -1121,6 +1133,7 @@
       .deskIcon { flex: 0 0 92px; }
       #dock { gap: 2px; padding: 5px 6px; bottom: 10px; }
       .dockGlyph { font-size: 1.25rem; }
+      .dockGlyph.hasIcon { width: 22px; height: 22px; }
       .carNav { width: 26px; height: 26px; font-size: 1rem; }
       .lGrid { grid-template-columns: 1fr; }
       .win { min-width: 260px; }
@@ -1332,6 +1345,37 @@
       syncDock();
     }
 
+    /* ── hand-drawn icons ───────────────────────────────── */
+    /* Every glyph ships as an emoji and is upgraded in place to the matching
+       SVG in /icons if that file exists. Missing or malformed files simply
+       leave the emoji alone, so the nav can never render empty. */
+    const iconCache = {};
+
+    async function fetchIcon(name) {
+      if (name in iconCache) return iconCache[name];
+      try {
+        const res = await fetch(`icons/${name}.svg`);
+        /* A missing file on the dev server comes back as the SPA's index.html */
+        const txt = res.ok ? await res.text() : '';
+        iconCache[name] = txt.trim().startsWith('<svg') ? txt : null;
+      } catch {
+        iconCache[name] = null;
+      }
+      return iconCache[name];
+    }
+
+    async function hydrateIcons() {
+      const slots = [...document.querySelectorAll('[data-icon]')];
+      const names = [...new Set(slots.map(s => s.dataset.icon))];
+      await Promise.all(names.map(fetchIcon));
+      slots.forEach(slot => {
+        const svg = iconCache[slot.dataset.icon];
+        if (!svg) return;
+        slot.innerHTML = svg;
+        slot.classList.add('hasIcon');
+      });
+    }
+
     /* ── dock ───────────────────────────────────────────── */
     /* A closed window isn't gone, it's just put away — the dock is where it
        lives in the meantime, and how you get it back. */
@@ -1340,7 +1384,7 @@
       dock.id = 'dock';
       dock.innerHTML = defs.map(d => `
         <button class="dockBtn" id="dk-${d.id}" title="${d.title}" aria-label="${d.title}" onclick="toggleWin('${d.id}')">
-          <span class="dockGlyph">${d.icon}</span>
+          <span class="dockGlyph" data-icon="${d.id}">${d.icon}</span>
           <span class="dockDot"></span>
         </button>`).join('');
       document.body.appendChild(dock);
@@ -1589,7 +1633,7 @@
     function bHome() {
       const navBtns = HOME_NAV.map(([id, ico, label = id]) => `
         <button class="deskIcon" onclick="openWin('${id}')">
-          <span class="deskIcoGlyph">${ico}</span>
+          <span class="deskIcoGlyph" data-icon="${id}">${ico}</span>
           <span class="deskIcoLbl">${label}</span>
         </button>`).join('');
       return `
@@ -1810,6 +1854,9 @@
 
       // 4c. Light the first carousel dot now the projects window exists
       goSlide(0);
+
+      // 4d. Upgrade the emoji glyphs to hand-drawn SVGs where we have them
+      hydrateIcons();
 
       // 5. Fill out the 'About Me' bio automatically
       const bioEl = document.getElementById('abBio');
