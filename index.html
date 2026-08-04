@@ -607,77 +607,124 @@
       letter-spacing: .4px;
     }
 
-    /* gallery */
-    .gSet {
-      margin-bottom: 18px
-    }
-
-    .gSetTit {
-      font-family: var(--fontHd);
-      font-size: .88rem;
-      font-weight: 700;
-      color: var(--txt)
-    }
-
-    .gSetMeta {
-      font-size: .7rem;
-      font-weight: 700;
-      color: var(--acc);
-      letter-spacing: .4px;
-      margin-bottom: 7px
-    }
-
-    .gGrid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px
-    }
-
-    .gItem {
-      aspect-ratio: 1;
-      border-radius: var(--radSm);
-      overflow: hidden;
-      cursor: pointer;
-      background: color-mix(in srgb, var(--acc) 12%, var(--winBg));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.4rem;
+    /* gallery — one photo at a time, arrows and dots to move between them */
+    .car {
       position: relative;
-      border: 1.5px solid var(--border);
+      margin-bottom: 6px;
     }
 
-    .gItem img {
+    .carView {
+      overflow: hidden;
+      border-radius: var(--rad);
+    }
+
+    .carTrack {
+      display: flex;
+      transition: transform .35s ease;
+    }
+
+    .carSlide {
+      flex: 0 0 100%;
+      min-width: 0;
+    }
+
+    .carImg {
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      cursor: zoom-in;
+      border: 1.5px solid var(--border);
+      border-radius: var(--rad);
+      background: color-mix(in srgb, var(--acc) 12%, var(--winBg));
+    }
+
+    .carImg img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform .25s
+      display: block;
+      transition: transform .3s;
     }
 
-    .gItem:hover img {
-      transform: scale(1.06)
+    .carImg:hover img {
+      transform: scale(1.04)
     }
 
-    .gCap {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: flex-end;
-      background: linear-gradient(to top, rgba(0, 0, 0, .62) 0%, transparent 55%);
-      padding: 5px;
-      opacity: 0;
-      transition: opacity .2s;
+    .carCap {
+      padding: 8px 2px 0;
     }
 
-    .gItem:hover .gCap {
-      opacity: 1
-    }
-
-    .gCap span {
-      color: #fff;
-      font-size: .62rem;
+    .carEvent {
+      font-family: var(--fontHd);
+      font-size: .82rem;
       font-weight: 700;
-      line-height: 1.25
+      color: var(--txt);
+    }
+
+    .carDate {
+      font-size: .68rem;
+      font-weight: 700;
+      color: var(--acc);
+      letter-spacing: .4px;
+      margin-left: 7px;
+    }
+
+    .carText {
+      display: block;
+      font-size: .72rem;
+      color: var(--txt2);
+      line-height: 1.4;
+      margin-top: 2px;
+    }
+
+    /* Arrows sit over the image, vertically centred on it rather than the slide */
+    .carNav {
+      position: absolute;
+      top: calc((100% - 46px) / 2);
+      transform: translateY(-50%);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: color-mix(in srgb, var(--winBg) 85%, transparent);
+      color: var(--txt);
+      font-size: 1.2rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s, transform .2s;
+    }
+
+    .carNav:hover {
+      background: var(--acc);
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .carPrev { left: 8px }
+    .carNext { right: 8px }
+
+    .carDots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 9px;
+    }
+
+    .carDot {
+      width: 7px;
+      height: 7px;
+      padding: 0;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+    }
+
+    .carDot.carDotOn {
+      background: var(--acc);
+      transform: scale(1.2);
     }
 
     /* project */
@@ -1074,7 +1121,7 @@
       .deskIcon { flex: 0 0 92px; }
       #dock { gap: 2px; padding: 5px 6px; bottom: 10px; }
       .dockGlyph { font-size: 1.25rem; }
-      .gGrid { grid-template-columns: repeat(2, 1fr); }
+      .carNav { width: 26px; height: 26px; font-size: 1rem; }
       .lGrid { grid-template-columns: 1fr; }
       .win { min-width: 260px; }
     }
@@ -1629,24 +1676,56 @@
     }
 
     /* Photography renders as a section at the foot of the projects window. */
+    /* Every shot is flattened into one slide list — with a handful of photos a
+       carousel shows each one at a readable size instead of shrinking them all
+       into thumbnail grids. Slide click still opens the lightbox. */
+    function gallerySlides() {
+      return (CFG.gallery || []).flatMap(s =>
+        (s.photos || []).map(p => ({ ...p, event: s.event, date: s.date }))
+      );
+    }
+
+    let galIdx = 0;
+
     function bGallery() {
-      const sets = CFG.gallery || [];
-      const body = sets.map(s => {
-        const meta = s.date || '';
-        const shots = (s.photos || []).map(p => `<div class="gItem" onclick="openLb('${p.img}')">
+      const slides = gallerySlides();
+      if (!slides.length) return '';
+
+      const track = slides.map(p => `<figure class="carSlide">
+      <div class="carImg" onclick="openLb('${p.img}')">
         <img src="${p.img}" alt="${p.caption}" loading="lazy" decoding="async"/>
-        <div class="gCap"><span>${p.caption}</span></div>
-      </div>`).join('');
-        return `<div class="gSet">
-      <p class="gSetTit">${s.event}</p>
-      ${meta ? `<p class="gSetMeta">${meta}</p>` : ''}
-      <div class="gGrid">${shots}</div>
-    </div>`;
-      }).join('');
+      </div>
+      <figcaption class="carCap">
+        <span class="carEvent">${p.event}</span>${p.date ? `<span class="carDate">${p.date}</span>` : ''}
+        <span class="carText">${p.caption}</span>
+      </figcaption>
+    </figure>`).join('');
+
+      const dots = slides.map((_, i) =>
+        `<button class="carDot" onclick="goSlide(${i})" aria-label="photo ${i + 1}"></button>`).join('');
+
       return `<span class="sl">photography</span>
     <p style="font-size:.74rem;color:var(--txt2);margin-bottom:11px">event photography</p>
-    ${body}`;
+    <div class="car">
+      <div class="carView"><div class="carTrack" id="carTrack">${track}</div></div>
+      <button class="carNav carPrev" onclick="stepSlide(-1)" aria-label="previous photo">‹</button>
+      <button class="carNav carNext" onclick="stepSlide(1)" aria-label="next photo">›</button>
+      <div class="carDots" id="carDots">${dots}</div>
+    </div>`;
     }
+
+    function goSlide(i) {
+      const track = document.getElementById('carTrack');
+      if (!track) return;
+      const count = track.children.length;
+      if (!count) return;
+      galIdx = (i + count) % count;            /* wraps in both directions */
+      track.style.transform = `translateX(-${galIdx * 100}%)`;
+      [...document.querySelectorAll('#carDots .carDot')]
+        .forEach((d, n) => d.classList.toggle('carDotOn', n === galIdx));
+    }
+
+    function stepSlide(delta) { goSlide(galIdx + delta); }
 
     function bFaq() {
       const faqPool = CFG.faq || [];
@@ -1729,6 +1808,9 @@
       // 4b. Build the dock so every window has somewhere to be restored from
       mkDock(defs);
 
+      // 4c. Light the first carousel dot now the projects window exists
+      goSlide(0);
+
       // 5. Fill out the 'About Me' bio automatically
       const bioEl = document.getElementById('abBio');
       if (bioEl) bioEl.innerHTML = CFG.aboutBio;
@@ -1746,6 +1828,8 @@
     // Expose functions to global scope for inline HTML handlers
     window.openWin = openWin;
     window.toggleWin = toggleWin;
+    window.goSlide = goSlide;
+    window.stepSlide = stepSlide;
     window.closeWin = closeWin;
     window.openLb = openLb;
     window.closeLb = closeLb;
