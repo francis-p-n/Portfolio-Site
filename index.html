@@ -48,7 +48,7 @@
 
       /* TODO(Francis): the [N] placeholders below are the only figures I could not
          verify. Replace them before the next deploy — see R-05 of the PRD. */
-      aboutBio: `hi! i'm <strong>Francis</strong> — I'm reading Computer Science in Data Science at Monash University Malaysia (2025–present), working mainly in Python, SQL and data analytics.<br><br>Alongside coursework I ran a paid research internship building the <strong>Malaysia English Church Directory</strong>: a structured nationwide dataset of 800+ churches, senior pastors and denominational affiliations, compiled with Python and openpyxl and verified church-by-church against primary sources.<br><br>I'm <strong>Interim Leader of the 46th Petaling Perdana Scout Troop</strong>, leading [N] scouts since [MONTH YEAR] and organising the Petaling Perdana 80KM Hike 2025 for [N] participants.<br><br>I teach <strong>catechism at the Church of the Assumption, Petaling Jaya</strong> — Confirmation preparation for 15–16 year olds, a class of roughly [N] students, running weekly through the academic year.<br><br>I also write on theology and reflective practice, and shoot event photography on a Canon 60D.`,
+      aboutBio: `hi! i'm <strong>Francis</strong> — I'm currently studying Computer Science in Data Science at Monash University Malaysia, and I'm deeply passionate about journalism, storytelling, and community building.<br><br>I also dedicate a lot of my time to youth leadership and mentoring, serving as Interim Leader for the 46th Petaling Perdana Scout Troop and volunteering at the Church of the Assumption as a teacher.`,
       edu: "Bachelors of Computer Science in Data Science",
       eduNote: "(2025 - Present) Monash University Malaysia",
       interests: ["Research Projects", "Theology", "Game Development", "Journalism and Storytelling", "Photography", "Bouldering"],
@@ -72,7 +72,7 @@
       skillsCreative: [
         { name: "Theological Writing", level: "Advanced" },
         { name: "Research & Verification Methodology", level: "Advanced" },
-        { name: "Event Photography — Canon 60D", level: "Intermediate" },
+        { name: "Event Photography", level: "Intermediate" },
         { name: "Public Speaking", level: "Intermediate" },
         { name: "Mentorship & Youth Leadership", level: "Intermediate" },
       ],
@@ -120,18 +120,18 @@
         },
       ],
 
-      /* Photo sets are surfaced in their own window; each set records event, date and body. */
+      /* Photo sets render as a section inside the projects window; each set records event and date. */
       gallery: [
         {
-          event: "Monash Photography Society workshop", date: "2025", camera: "Canon 60D",
+          event: "Monash Photography Society workshop", date: "2025",
           photos: [{ img: "images/lights.webp", caption: "Long-exposure light study from the workshop." }],
         },
         {
-          event: "Petaling Perdana Scouts 80KM Hike", date: "2025", camera: "Canon 60D",
+          event: "Petaling Perdana Scouts 80KM Hike", date: "2025",
           photos: [{ img: "images/scouts.webp", caption: "On the trail during the 80KM Hike." }],
         },
         {
-          event: "Church camp", date: "2025", camera: "Canon 60D",
+          event: "Church camp", date: "2025",
           photos: [{ img: "images/eucharist.webp", caption: "Eucharistic adoration at the closing night." }],
         },
       ],
@@ -1017,14 +1017,32 @@
     .deskSub {
       font-size: 1.1rem; color: var(--txt2); max-width: 400px; line-height: 1.5; margin: 0 auto;
     }
+    /* Desktop icons, not cards: borderless glyph + label, loosely wrapped and centred. */
     .deskGrid {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 35px;
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 4px;
+      max-width: 320px; margin: 35px auto 0;
     }
+    .deskIcon {
+      flex: 0 0 96px; background: none; border: none; padding: 10px 4px; cursor: pointer;
+      font-family: var(--font); color: var(--txt);
+      display: flex; flex-direction: column; align-items: center; gap: 7px;
+      border-radius: 10px; transition: transform .2s, background .2s;
+    }
+    .deskIcon:hover, .deskIcon:focus-visible {
+      transform: scale(1.08);
+      background: color-mix(in srgb, var(--acc) 12%, transparent);
+    }
+    .deskIcon:active { transform: scale(.94); }
+    .deskIcoGlyph {
+      font-size: 2.4rem; line-height: 1; filter: drop-shadow(0 3px 3px rgba(0,0,0,.16));
+    }
+    .deskIcoLbl { font-weight: 700; font-size: .85rem; }
 
     @media (max-width: 600px) {
       .deskTitle { font-size: 2.2rem; }
       .deskSub { font-size: 1rem; }
-      .deskGrid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .deskGrid { gap: 6px 2px; max-width: 300px; }
+      .deskIcon { flex: 0 0 92px; }
       .gGrid { grid-template-columns: repeat(2, 1fr); }
       .lGrid { grid-template-columns: 1fr; }
       .win { min-width: 260px; }
@@ -1515,15 +1533,16 @@
     <span class="sl">creative &amp; leadership skills</span>
     <div class="pRow">${skillPills(CFG.skillsCreative)}</div>
     <hr/>
-    <span class="sl">projects</span>${pHtml}`;
+    <span class="sl">projects</span>${pHtml}
+    <hr/>
+    ${bGallery()}`;
     }
 
-    /* Photography lives in its own window — it's a verifiable credential, not a
-       footnote inside the projects grid. */
+    /* Photography renders as a section at the foot of the projects window. */
     function bGallery() {
       const sets = CFG.gallery || [];
       const body = sets.map(s => {
-        const meta = [s.date, s.camera].filter(Boolean).join(' · ');
+        const meta = s.date || '';
         const shots = (s.photos || []).map(p => `<div class="gItem" onclick="openLb('${p.img}')">
         <img src="${p.img}" alt="${p.caption}" loading="lazy" decoding="async"/>
         <div class="gCap"><span>${p.caption}</span></div>
@@ -1534,8 +1553,8 @@
       <div class="gGrid">${shots}</div>
     </div>`;
       }).join('');
-      return `<span class="sl">photo portfolio</span>
-    <p style="font-size:.74rem;color:var(--txt2);margin-bottom:11px">event photography, shot on a Canon 60D</p>
+      return `<span class="sl">photography</span>
+    <p style="font-size:.74rem;color:var(--txt2);margin-bottom:11px">event photography</p>
     ${body}`;
     }
 
@@ -1599,14 +1618,13 @@
         { id: 'about', title: 'about', icon: '👤', w: 580, h: 440 },
         { id: 'articles', title: 'articles', icon: '📰', w: 320, h: 420 },
         { id: 'projects', title: 'projects', icon: '🎨', w: 580, h: 440 },
-        { id: 'photos', title: 'photos', icon: '📷', w: 560, h: 440 },
         { id: 'links', title: 'links', icon: '🔗', w: 300, h: 240 },
         { id: 'faq', title: 'working with me', icon: '❓', w: 340, h: 340 },
         { id: 'contact', title: 'contact', icon: '✉️', w: 290, h: 280 },
       ];
 
       // 3. Map each window ID to the function that generates its HTML content
-      const htmlMap = { about: bAbout, articles: bArticles, projects: bProjects, photos: bGallery, links: bLinks, faq: bFaq, contact: bContact };
+      const htmlMap = { about: bAbout, articles: bArticles, projects: bProjects, links: bLinks, faq: bFaq, contact: bContact };
 
       // 4. Create each window using our mkWin helper function!
       // All builders are synchronous now, so nothing here waits on the network.
@@ -1626,12 +1644,12 @@
       const deskEl = document.getElementById('desk');
       
       const deskNavBtns = [
-        ['about', '👤'], ['articles', '📰'], ['projects', '🎨'], ['photos', '📷'],
+        ['about', '👤'], ['articles', '📰'], ['projects', '🎨'],
         ['links', '🔗'], ['faq', '❓', 'working with me'], ['contact', '✉️'],
       ].map(([id, ico, label = id]) => `
-        <button onclick="openWin('${id}')" style="background:color-mix(in srgb, var(--acc) 10%, var(--winBg)); border:1.5px solid var(--border); border-radius:12px; padding:15px; cursor:pointer; font-family:var(--font); font-weight:700; font-size:.85rem; color:var(--txt); display:flex; flex-direction:column; align-items:center; gap:8px; transition:all .2s;" onmouseover="this.style.borderColor='var(--acc)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform=''">
-          <span style="font-size:1.6rem">${ico}</span>
-          <span>${label}</span>
+        <button class="deskIcon" onclick="openWin('${id}')">
+          <span class="deskIcoGlyph">${ico}</span>
+          <span class="deskIcoLbl">${label}</span>
         </button>
       `).join('');
 
