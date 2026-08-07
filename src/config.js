@@ -28,11 +28,14 @@ export const CFG = {
   /* Skills are split by category, and every entry carries a proficiency level. */
   skillsTechnical: [
     { name: "Python", level: "Intermediate" },
+    { name: "C++", level: "Intermediate" },
     { name: "SQL — Oracle & MongoDB", level: "Intermediate" },
     { name: "Data Analytics", level: "Intermediate" },
+    { name: "Scikit-learn", level: "Basic" },
     { name: "Web Scraping — openpyxl / requests", level: "Intermediate" },
     { name: "React / Frontend", level: "Basic" },
     { name: "Git & GitHub", level: "Basic" },
+    { name: "Microsoft Office", level: "Intermediate" },
   ],
   skillsCreative: [
     { name: "Theological Writing", level: "Advanced" },
@@ -40,6 +43,7 @@ export const CFG = {
     { name: "Event Photography", level: "Intermediate" },
     { name: "Public Speaking", level: "Intermediate" },
     { name: "Mentorship & Youth Leadership", level: "Intermediate" },
+    { name: "Canva & Affinity Design", level: "Intermediate" },
   ],
 
   projects: [
@@ -61,19 +65,24 @@ export const CFG = {
       desc: "A background service that tracks live marketplace prices, runs statistical analysis over the history, and pushes daily summaries to WhatsApp.",
       url: "https://github.com/francis-p-n/warframe-market-predictor", btn: "view source",
     },
-    /* TODO(Francis): fill in the stack, description and link for these two —
-       placeholders are in place so the cards render, but the copy is a guess. */
-    {
-      title: "MyHack",
-      img: "", stack: "",
-      desc: "",
-      url: "", btn: "",
-    },
     {
       title: "WeBoosta",
       img: "", stack: "Next.js · FastAPI · LangGraph · Gemini · Supabase",
       desc: "An AI-search optimisation platform for hotels, built with Shariq Nauman for UMHackathon 2026. Multi-agent workflows simulate how AI travel agents evaluate a property, then generate machine-readable content so the hotel stays discoverable.",
       url: "https://github.com/ShariqNauman/aeo-optimizer", btn: "view source",
+    },
+    /* TODO(Francis): fill in stack, links and fuller descriptions once these are further along. */
+    {
+      title: "Ekklesia",
+      img: "", stack: "",
+      desc: "A mobile app designed to be a one-stop source for all things Catholic in Malaysia.",
+      url: "", btn: "", wip: true,
+    },
+    {
+      title: "ArkFlow",
+      img: "", stack: "",
+      desc: "A SaaS platform targeted to streamline animal management for zoos and conservations.",
+      url: "", btn: "", wip: true,
     },
   ],
 
@@ -91,6 +100,73 @@ export const CFG = {
       event: "Church camp", date: "2025",
       photos: [{ img: "images/eucharist.webp", caption: "Eucharistic adoration at the closing night." }],
     },
+  ],
+
+  /* Rendered in the 'experience' window, work first then leadership, each as a
+     card with a bullet list of achievements. */
+  workExperience: [
+    {
+      org: "Alpha Malaysia",
+      role: "Intern – Alpha for Church & Coach Engagement",
+      period: "May – August 2026",
+      bullets: [
+        "Orchestrated complex operational logistics for a 3,000-delegate conference, ensuring seamless flow of resources.",
+        "Streamlined and updated the leadership directory for 667 churches, implementing rigorous data validation protocols to improve communication accuracy and stakeholder engagement.",
+        "Collaborated with senior leadership to formulate and execute strategic initiatives, utilizing analytical insights to align organizational goals with long-term operational objectives.",
+      ],
+    },
+    {
+      org: "Methodist College Kuala Lumpur",
+      role: "Temporary Staff",
+      period: "January – May 2025",
+      bullets: [
+        "Spearheaded the training and development of student leaders, enhancing leadership competencies and operational readiness through structured mentorship and performance evaluations.",
+        "Managed Student Affairs social media channels, executing a strategic content plan that increased digital engagement and strengthened the college's community presence.",
+        "Conceptualized and implemented sustainable frameworks for student soft skills development, ensuring long-term scalability and measurable growth in student professional capabilities.",
+        "Coordinated the execution of the MCKL Dash for Charity 2025, managing cross-functional logistics and stakeholder communications to ensure a high-impact, successful community event.",
+      ],
+    },
+  ],
+
+  leadershipRoles: [
+    {
+      org: "Flaming Phoenix, 46th Petaling Perdana Scout Troop",
+      role: "Interim Leader",
+      period: "2023 – Present",
+      bullets: [
+        "Trained multiple successful King Scouts.",
+        "Renewed training of student leaders and systems, allowing scouts to start earning merit badges again.",
+        "Liaised regularly with the school administration and district/state-level Scout Commissioners to organize appropriate programs to train secondary school-age youth Scouts in leadership and survival skills.",
+      ],
+    },
+    {
+      org: "Monash University Student Association",
+      role: "School of Information Technology Secretary",
+      period: "January – July 2026",
+      bullets: [
+        "Handled the administration of multiple events, including post-event reports.",
+        "Created questions and invigilated a coding competition.",
+        "Handled communication between regular students and committee members.",
+        "Co-Director for the Monash Hackathon 2026.",
+      ],
+    },
+    {
+      org: "Methodist College Kuala Lumpur, Student Affairs Department",
+      role: "Orientation Camp ReSTA (Recruitment, Selection, Training, Appraisal), Camps 1–4",
+      period: "2025",
+      bullets: [
+        "Managed and advised the recruitment and selection process of facilitators.",
+        "Provided active mentorship, feedback, and training for 8 commanders alongside 2 partners.",
+        "Liaised with staff members and spearheaded large-scale overhauls to outdated systems.",
+      ],
+    },
+  ],
+
+  honours: [
+    "ASEAN Future Sustainable Leaders Pitch Competition 2023 Winner",
+    "UMHackathon 2026 Finalist",
+    "GDG KL myHack 2026 Finalist",
+    "WOSM Safe From Harm Certified",
   ],
 
   faq: [
