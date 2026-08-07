@@ -2,6 +2,19 @@ import { supabase } from './supabaseClient';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 
+/* Article title/description/tags come from Supabase, not a trusted source of
+   markup — escape them before they land in innerHTML. content_md is the only
+   field allowed to carry real HTML, and it goes through DOMPurify below. */
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export async function fetchArticles() {
   const { data: articles, error } = await supabase
     .from('articles')
@@ -24,27 +37,30 @@ export async function renderArticlesHtml() {
   const renderHighlightCard = (p) => {
     const hasImg = p.img && p.img.length;
     const dateStr = p.created_at ? new Date(p.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short' }) : '';
-    const category = (p.tags && p.tags.length > 0) ? p.tags[0] : '';
+    const category = (p.tags && p.tags.length > 0) ? escapeHtml(p.tags[0]) : '';
     const meta = [dateStr, category].filter(Boolean).join(' · ');
-    return `<div class="pCard artHighlight" onclick="openArticleWindow('${p.id}')" style="cursor:pointer; margin-bottom: 15px; border-radius: var(--radSm); transition: box-shadow 0.2s, transform 0.2s;">
-      ${hasImg ? `<div class="pImg"><img src="${p.img}" alt="${p.title}"/></div>` : ''}
-      <p class="pTit">${p.title}</p>
+    const id = escapeHtml(p.id);
+    const title = escapeHtml(p.title);
+    return `<div class="pCard artHighlight" onclick="openArticleWindow('${id}')" style="cursor:pointer; margin-bottom: 15px; border-radius: var(--radSm); transition: box-shadow 0.2s, transform 0.2s;">
+      ${hasImg ? `<div class="pImg"><img src="${escapeHtml(p.img)}" alt="${title}"/></div>` : ''}
+      <p class="pTit">${title}</p>
       ${meta ? `<p style="font-size:0.7rem; color:var(--acc); font-weight:700; margin-bottom:5px; letter-spacing:0.5px;">${meta}</p>` : ''}
-      <p class="pDsc">${p.description || ''}</p>
+      <p class="pDsc">${escapeHtml(p.description)}</p>
       <span style="display:inline-flex; align-items:center; gap:5px; font-size:0.77rem; font-weight:700; color:var(--acc); margin-top:8px;">Read Article <span style="transition: transform 0.2s;">→</span></span>
     </div>`;
   };
 
   const renderRecentItem = (p) => {
     const dateStr = p.created_at ? new Date(p.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short' }) : '';
-    const category = (p.tags && p.tags.length > 0) ? p.tags[0] : '';
+    const category = (p.tags && p.tags.length > 0) ? escapeHtml(p.tags[0]) : '';
     const meta = [dateStr, category].filter(Boolean).join(' · ');
-    return `<div class="artRecentItem" onclick="openArticleWindow('${p.id}')" style="cursor:pointer; padding: 11px 10px; border-radius: var(--radSm); border-bottom: 1px solid color-mix(in srgb, var(--border) 30%, transparent);">
+    const id = escapeHtml(p.id);
+    return `<div class="artRecentItem" onclick="openArticleWindow('${id}')" style="cursor:pointer; padding: 11px 10px; border-radius: var(--radSm); border-bottom: 1px solid color-mix(in srgb, var(--border) 30%, transparent);">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
         <div style="flex:1;">
           ${meta ? `<p style="font-size:0.68rem; color:var(--acc); font-weight:700; margin-bottom:3px; letter-spacing:0.4px;">${meta}</p>` : ''}
-          <p class="artRecentTitle" style="font-size:0.85rem; font-weight:700; color:var(--txt); margin-bottom:3px;">${p.title}</p>
-          <p class="pDsc" style="font-size:0.78rem; margin:0; color:var(--txt2);">${p.description || ''}</p>
+          <p class="artRecentTitle" style="font-size:0.85rem; font-weight:700; color:var(--txt); margin-bottom:3px;">${escapeHtml(p.title)}</p>
+          <p class="pDsc" style="font-size:0.78rem; margin:0; color:var(--txt2);">${escapeHtml(p.description)}</p>
         </div>
         <span class="artArrow" style="color:var(--acc); font-weight:900; font-size:1rem; flex-shrink:0; padding-top:2px; transition: transform 0.2s;">→</span>
       </div>
@@ -115,15 +131,15 @@ export async function openArticleWindow(id) {
   const rawHtml = await marked.parse(article.content_md || '');
   const cleanHtml = DOMPurify.sanitize(rawHtml);
 
-  const tagsHtml = (article.tags && article.tags.length > 0) 
-    ? article.tags.map(tag => `<span style="background:color-mix(in srgb, var(--txt2) 10%, transparent); color:var(--txt2); padding:4px 10px; border-radius:20px; font-size:0.75rem; margin-right:5px;">${tag}</span>`).join('')
+  const tagsHtml = (article.tags && article.tags.length > 0)
+    ? article.tags.map(tag => `<span style="background:color-mix(in srgb, var(--txt2) 10%, transparent); color:var(--txt2); padding:4px 10px; border-radius:20px; font-size:0.75rem; margin-right:5px;">${escapeHtml(tag)}</span>`).join('')
     : '';
 
   // Render HTML for the window
   const htmlContent = `
     <div style="padding: 25px; line-height: 1.7; font-size: 0.95rem;">
-      <h1 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 10px; color: var(--txt); line-height: 1.2;">${article.title}</h1>
-      <p style="font-size: 1.1rem; color: var(--txt2); margin-bottom: 20px;">${article.description || ''}</p>
+      <h1 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 10px; color: var(--txt); line-height: 1.2;">${escapeHtml(article.title)}</h1>
+      <p style="font-size: 1.1rem; color: var(--txt2); margin-bottom: 20px;">${escapeHtml(article.description)}</p>
       
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:30px; font-size:0.85rem; color:var(--txt2);">
         <div style="width:36px; height:36px; border-radius:50%; background:color-mix(in srgb, var(--acc) 20%, var(--winBg)); display:flex; align-items:center; justify-content:center; font-size:1rem; border:1px solid var(--border);">🖊️</div>
@@ -159,5 +175,5 @@ export async function openArticleWindow(id) {
   `;
 
   // Create the window
-  window.mkWin('art-' + id, article.title, '📄', 700, 550, 0, 0, styleBlock + htmlContent);
+  window.mkWin('art-' + id, escapeHtml(article.title), '📄', 700, 550, 0, 0, styleBlock + htmlContent);
 }
