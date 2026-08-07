@@ -13,6 +13,69 @@ document.documentElement.style.setProperty('--acc', CFG.accent);
 document.documentElement.style.setProperty('--desk', CFG.desktopBg);
 document.documentElement.style.setProperty('--winBg', CFG.winBg);
 
+/* ── hand-drawn icons ───────────────────────────────── */
+/* Every glyph ships as an emoji and is upgraded in place to the matching
+   SVG in /icons if that file exists. Missing or malformed files simply
+   leave the emoji alone, so the nav can never render empty.
+   This has to come before ── theme ── below: setTheme() calls paintIcon()
+   at module load time when a saved theme exists, so iconCache must already
+   be initialized by then. */
+const iconCache = {};
+
+async function fetchIcon(name) {
+  if (name in iconCache) return iconCache[name];
+  try {
+    const res = await fetch(`icons/${name}.svg`);
+    /* A missing file on the dev server comes back as the SPA's index.html */
+    const txt = res.ok ? await res.text() : '';
+    iconCache[name] = txt.trim().startsWith('<svg') ? txt : null;
+  } catch {
+    iconCache[name] = null;
+  }
+  return iconCache[name];
+}
+
+/* The toggles swap between two icons, so both states are preloaded even
+   though only one of each is in the DOM at hydration time */
+const EXTRA_ICONS = ['theme-light', 'sfx-off'];
+
+/* The same icon can be on screen twice (nav and dock), so every injection
+   gets its own ids — duplicate ids are invalid and make clip-path
+   references resolve to whichever copy happens to be first in the document */
+let iconSeq = 0;
+function uniquifyIds(svg) {
+  const n = ++iconSeq;
+  return svg
+    .replace(/id="([^"]+)"/g, (_, id) => `id="${id}-${n}"`)
+    .replace(/url\(#([^)]+)\)/g, (_, id) => `url(#${id}-${n})`);
+}
+
+/* Paints one slot: the SVG if we have it, otherwise the emoji it falls back to */
+function paintIcon(el, name, emoji) {
+  if (!el) return;
+  el.dataset.icon = name;
+  const svg = iconCache[name];
+  if (svg) {
+    el.innerHTML = uniquifyIds(svg);
+    el.classList.add('hasIcon');
+  } else {
+    el.textContent = emoji;
+    el.classList.remove('hasIcon');
+  }
+}
+
+async function hydrateIcons() {
+  const slots = [...document.querySelectorAll('[data-icon]')];
+  const names = [...new Set([...slots.map(s => s.dataset.icon), ...EXTRA_ICONS])];
+  await Promise.all(names.map(fetchIcon));
+  slots.forEach(slot => {
+    const svg = iconCache[slot.dataset.icon];
+    if (!svg) return;
+    slot.innerHTML = uniquifyIds(svg);
+    slot.classList.add('hasIcon');
+  });
+}
+
 /* ── theme ─────────────────────────────────────────── */
 const themeBtn = document.getElementById('themeBtn');
 let isDark = localStorage.getItem('theme') === 'dark';
@@ -134,66 +197,6 @@ function closeWin(id) {
   winMap[id].el.classList.remove('focused');
   winMap[id].minned = true;
   syncDock();
-}
-
-/* ── hand-drawn icons ───────────────────────────────── */
-/* Every glyph ships as an emoji and is upgraded in place to the matching
-   SVG in /icons if that file exists. Missing or malformed files simply
-   leave the emoji alone, so the nav can never render empty. */
-const iconCache = {};
-
-async function fetchIcon(name) {
-  if (name in iconCache) return iconCache[name];
-  try {
-    const res = await fetch(`icons/${name}.svg`);
-    /* A missing file on the dev server comes back as the SPA's index.html */
-    const txt = res.ok ? await res.text() : '';
-    iconCache[name] = txt.trim().startsWith('<svg') ? txt : null;
-  } catch {
-    iconCache[name] = null;
-  }
-  return iconCache[name];
-}
-
-/* The toggles swap between two icons, so both states are preloaded even
-   though only one of each is in the DOM at hydration time */
-const EXTRA_ICONS = ['theme-light', 'sfx-off'];
-
-/* The same icon can be on screen twice (nav and dock), so every injection
-   gets its own ids — duplicate ids are invalid and make clip-path
-   references resolve to whichever copy happens to be first in the document */
-let iconSeq = 0;
-function uniquifyIds(svg) {
-  const n = ++iconSeq;
-  return svg
-    .replace(/id="([^"]+)"/g, (_, id) => `id="${id}-${n}"`)
-    .replace(/url\(#([^)]+)\)/g, (_, id) => `url(#${id}-${n})`);
-}
-
-/* Paints one slot: the SVG if we have it, otherwise the emoji it falls back to */
-function paintIcon(el, name, emoji) {
-  if (!el) return;
-  el.dataset.icon = name;
-  const svg = iconCache[name];
-  if (svg) {
-    el.innerHTML = uniquifyIds(svg);
-    el.classList.add('hasIcon');
-  } else {
-    el.textContent = emoji;
-    el.classList.remove('hasIcon');
-  }
-}
-
-async function hydrateIcons() {
-  const slots = [...document.querySelectorAll('[data-icon]')];
-  const names = [...new Set([...slots.map(s => s.dataset.icon), ...EXTRA_ICONS])];
-  await Promise.all(names.map(fetchIcon));
-  slots.forEach(slot => {
-    const svg = iconCache[slot.dataset.icon];
-    if (!svg) return;
-    slot.innerHTML = uniquifyIds(svg);
-    slot.classList.add('hasIcon');
-  });
 }
 
 /* ── dock ───────────────────────────────────────────── */
@@ -436,7 +439,7 @@ function avHtml() {
 /* The landing view is itself a window — the desktop underneath stays empty
    wallpaper, so the whole site reads as one OS rather than a page with popups. */
 const HOME_NAV = [
-  ['about', '👤'], ['articles', '📰'], ['projects', '🎨'],
+  ['about', '👤'], ['articles', '📰'], ['projects', '🎨'], ['experience', '💼'],
   ['links', '🔗'], ['faq', '❓', 'working with me'], ['contact', '✉️'],
 ];
 
@@ -581,6 +584,33 @@ function goSlide(i) {
 
 function stepSlide(delta) { goSlide(galIdx + delta); }
 
+/* ── work experience / leadership / honours ─────────── */
+/* Work experience and leadership roles share the same card shape (org, role,
+   period, bullet list) so both render through one helper. */
+function roleCard(r) {
+  const bullets = (r.bullets || []).map(b => `<p class="pDsc" style="margin-bottom:4px;">• ${b}</p>`).join('');
+  return `<div class="pCard">
+      <p class="pTit">${r.org}</p>
+      <p class="pStack">${r.role} | ${r.period}</p>
+      ${bullets}
+    </div>`;
+}
+
+function bExperience() {
+  const workPool = CFG.workExperience || [];
+  const leadershipPool = CFG.leadershipRoles || [];
+  const honoursPool = CFG.honours || [];
+
+  return `
+    <span class="sl">work experience</span>${workPool.map(roleCard).join('')}
+    <hr/>
+    <span class="sl">leadership roles</span>${leadershipPool.map(roleCard).join('')}
+    ${honoursPool.length ? `
+    <hr/>
+    <span class="sl">honours &amp; awards</span>
+    <div class="tagRow">${honoursPool.map(h => `<span class="tag">${h}</span>`).join('')}</div>` : ''}`;
+}
+
 function bFaq() {
   const faqPool = CFG.faq || [];
   return `<span class="sl">working with me</span>
@@ -640,13 +670,14 @@ async function init() {
     { id: 'about', title: 'about', icon: '👤', w: 580, h: 440 },
     { id: 'articles', title: 'articles', icon: '📰', w: 320, h: 420 },
     { id: 'projects', title: 'projects', icon: '🎨', w: 580, h: 440 },
+    { id: 'experience', title: 'experience', icon: '💼', w: 580, h: 480 },
     { id: 'links', title: 'links', icon: '🔗', w: 300, h: 240 },
     { id: 'faq', title: 'working with me', icon: '❓', w: 340, h: 340 },
     { id: 'contact', title: 'contact', icon: '✉️', w: 290, h: 280 },
   ];
 
   // 3. Map each window ID to the function that generates its HTML content
-  const htmlMap = { home: bHome, about: bAbout, articles: bArticles, projects: bProjects, links: bLinks, faq: bFaq, contact: bContact };
+  const htmlMap = { home: bHome, about: bAbout, articles: bArticles, projects: bProjects, experience: bExperience, links: bLinks, faq: bFaq, contact: bContact };
 
   // 4. Create each window using our mkWin helper function!
   // All builders are synchronous now, so nothing here waits on the network.
