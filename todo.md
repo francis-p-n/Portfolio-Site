@@ -6,8 +6,8 @@ This checklist tracks the completed work, active focus, and future features for 
 
 ## Active & Core Features
 - [x] **Desktop OS Workspace:** Core window manager, draggable windows, desktop shortcuts, taskbar.
-- [x] **Supabase Database Integration:** Articles table, client setup, and row level security policies.
-- [x] **Markdown Engine:** On-the-fly parsing with `marked` and sanitization with `DOMPurify`.
+- [x] **Static Article Content:** Posts authored as markdown in `src/articles-data.js`, rendered without a database.
+- [x] **Markdown Engine:** On-the-fly parsing with `marked`, lazily imported when a post is opened.
 - [x] **Docker Deployment:** Dockerfile container setup with Alpine Nginx.
 
 ## Planned Enhancements
@@ -22,7 +22,7 @@ This checklist tracks the completed work, active focus, and future features for 
 
 ### 🛠️ Interactive Apps
 - [ ] **Terminal Simulator:** Add a functional CLI app where users can run basic terminal commands (e.g. `help`, `cat articles/`, `theme`, `clear`).
-- [ ] **Real-time Chat Widget:** A guestbook application powered by Supabase Realtime DB.
+- [ ] **Guestbook Widget:** A guestbook application (needs a backend — currently the site is fully static).
 - [ ] **System Settings App:** A dedicated configurations app for switching visual themes, cursor styles, and sound options.
 
 ### 🚀 DevOps & CI/CD

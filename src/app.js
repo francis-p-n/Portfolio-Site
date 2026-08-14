@@ -1,12 +1,5 @@
 import { CFG } from './config.js';
-
-/* Articles pull in supabase/marked/dompurify — load them lazily so they
-   stay off the critical path. The import fires once, after first paint. */
-let articlesModPromise = null;
-function loadArticlesMod() {
-  if (!articlesModPromise) articlesModPromise = import('./articles.js');
-  return articlesModPromise;
-}
+import { renderArticlesHtml, openArticleWindow } from './articles.js';
 /* ── apply CFG colors ──────────────────────────────── */
 /* Updating CSS root vars to apply the user's CFG colors */
 document.documentElement.style.setProperty('--acc', CFG.accent);
@@ -130,7 +123,7 @@ document.body.addEventListener('keydown', () => { sfxUnlocked = true; }, { once:
 // Auto-bind sound effects to every interactive button/link!
 function bindSfx() {
   // Find all custom buttons, icons, window close buttons, and anchor links
-  const interactives = document.querySelectorAll('button, .pCard, a, .wClose, .topBtn, .fQ, .lBtn');
+  const interactives = document.querySelectorAll('button, .pCard, a, .wClose, .topBtn, .accHd, .lBtn, .artFeat, .artRow');
   interactives.forEach(el => {
     el.addEventListener('mouseenter', () => playSnd(sndHover));
     el.addEventListener('mousedown', () => playSnd(sndClick));
@@ -172,8 +165,31 @@ function mkWin(id, title, icon, w, h, x, y, html) {
   focusWin(id);
 }
 
+/* ── per-window meta (title/description) ────────────── */
+/* The site is a single URL, so these aren't separate crawlable pages — but
+   keeping the tab title and description in sync with whatever window is
+   focused still helps anyone sharing a screenshot/tab, and screen readers
+   announcing the tab. */
+const WIN_META = {
+  home: { title: CFG.desktopTitle, desc: 'Francis P.N. — Computer Science in Data Science at Monash University Malaysia, and a theological writer. Research projects, data tooling, and essays.' },
+  about: { title: `about — ${CFG.name}`, desc: `About ${CFG.name}: ${CFG.tagline} Includes work experience, leadership roles, and honours.` },
+  articles: { title: `articles — ${CFG.name}`, desc: `Writing and essays by ${CFG.name} on theology, storytelling, and community.` },
+  projects: { title: `projects — ${CFG.name}`, desc: `Projects and skills from ${CFG.name}, spanning data tooling, research, and software.` },
+  links: { title: `links — ${CFG.name}`, desc: `Where to find ${CFG.name} online.` },
+  faq: { title: `faq — ${CFG.name}`, desc: `Frequently asked questions about working with ${CFG.name}.` },
+  contact: { title: `contact — ${CFG.name}`, desc: `Get in touch with ${CFG.name} by email.` },
+};
+const metaDescEl = document.querySelector('meta[name="description"]');
+function updateMeta(id) {
+  const m = WIN_META[id];
+  if (!m) return;
+  document.title = m.title;
+  if (metaDescEl) metaDescEl.setAttribute('content', m.desc);
+}
+
 /* Manages which window is floating on top */
 function focusWin(id) {
+  updateMeta(id);
   topZ++;
   /* Keep windows below the fixed top controls (z-index 500) by
      renormalizing the stack before it climbs that high */
@@ -407,9 +423,11 @@ function initRes(id) {
 }
 
 /* ── lightbox ───────────────────────────────────────── */
-function openLb(src) {
+function openLb(src, alt) {
   if (!src) return;
-  document.getElementById('lbImg').src = src;
+  const img = document.getElementById('lbImg');
+  img.src = src;
+  img.alt = alt || '';
   document.getElementById('lb').classList.add('open');
 }
 function closeLb(e) {
@@ -417,14 +435,43 @@ function closeLb(e) {
     document.getElementById('lb').classList.remove('open');
 }
 
-/* ── FAQ toggle ─────────────────────────────────────── */
-function tglFaq(i) {
-  const btns = document.querySelectorAll('.fQ');
-  const ans = document.querySelectorAll('.fA');
-  const isOpen = btns[i]?.classList.contains('open');
-  btns.forEach(b => b.classList.remove('open'));
-  ans.forEach(a => a.classList.remove('open'));
-  if (!isOpen && btns[i]) { btns[i].classList.add('open'); ans[i].classList.add('open'); }
+/* ── accordion ──────────────────────────────────────── */
+/* Long sections (career, skills, faq) collapse behind a header so a window
+   opens as a scannable outline instead of a wall of text. Ids are minted
+   here because the same component is built into several windows. */
+let accSeq = 0;
+function acc(label, meta, inner, open = false) {
+  const id = 'ac' + (++accSeq);
+  return `<div class="acc${open ? ' open' : ''}" id="${id}">
+      <button class="accHd" onclick="tglAcc('${id}')" aria-expanded="${open}" aria-controls="${id}-b">
+        <span class="accTit">${label}</span>
+        ${meta ? `<span class="accMeta">${meta}</span>` : ''}
+        <span class="accArr" aria-hidden="true">+</span>
+      </button>
+      <div class="accBody" id="${id}-b"><div class="accPad">${inner}</div></div>
+    </div>`;
+}
+
+/* Height is animated in pixels rather than left to CSS: a panel's content is
+   only measurable once it exists, and a guessed max-height clips long answers.
+   The resting state is applied on a timer rather than on transitionend, so a
+   panel is never left pinned at a stale pixel height if the transition doesn't
+   fire — and an open panel settles on auto, so it keeps reflowing with the
+   window instead of holding whatever height it had when it opened. */
+function tglAcc(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const body = el.querySelector('.accBody');
+  const open = el.classList.toggle('open');
+  el.querySelector('.accHd')?.setAttribute('aria-expanded', String(open));
+  if (!body) return;
+
+  body.style.height = body.getBoundingClientRect().height + 'px';
+  body.getBoundingClientRect();          /* flush, so the next value animates */
+  body.style.height = (open ? body.scrollHeight : 0) + 'px';
+
+  clearTimeout(body.accTimer);
+  body.accTimer = setTimeout(() => { body.style.height = open ? 'auto' : '0px'; }, 300);
 }
 
 /* ── HTML builders ──────────────────────────────────── */
@@ -439,8 +486,8 @@ function avHtml() {
 /* The landing view is itself a window — the desktop underneath stays empty
    wallpaper, so the whole site reads as one OS rather than a page with popups. */
 const HOME_NAV = [
-  ['about', '👤'], ['articles', '📰'], ['projects', '🎨'], ['experience', '💼'],
-  ['links', '🔗'], ['faq', '❓', 'working with me'], ['contact', '✉️'],
+  ['about', '👤'], ['articles', '📰'], ['projects', '🎨'],
+  ['links', '🔗'], ['faq', '❓'], ['contact', '✉️'],
 ];
 
 function bHome() {
@@ -454,36 +501,38 @@ function bHome() {
       ${CFG.avatar ? `<img src="${CFG.avatar}" class="deskAvatar"/>` : `<div class="deskEmoji">${CFG.avatarEmoji}</div>`}
       <h1 class="deskTitle">hi! i'm <span style="color:var(--acc); text-transform:lowercase">${CFG.name}</span></h1>
       <p class="deskSub">${CFG.tagline}</p>
+      <button class="deskIcon deskCta" onclick="openWin('contact')">
+        <span class="deskIcoGlyph deskCtaGlyph">✉️</span>
+        <span class="deskIcoLbl">let's talk</span>
+      </button>
       <div class="deskGrid">${navBtns}</div>
     </div>`;
 }
 
 function bAbout() {
-  const intPool = CFG.interests || [];
-  const lngPool = CFG.langs || [];
-  const int = intPool.map(i => `<span class="tag">${i}</span>`).join('');
-  const lng = lngPool.map(l => `<span class="tag">${l}</span>`).join('');
+  const int = (CFG.interests || []).map(i => `<span class="tag">${i}</span>`).join('');
+  const lng = (CFG.langs || []).map(l => `<span class="tag">${l}</span>`).join('');
   return `
-    <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:13px">
+    <div class="abHead">
       <div class="avi">${avHtml()}</div>
       <div>
-        <div class="bigN" style="font-size:1.35rem">${CFG.name}</div>
-        ${CFG.nameKanji ? `<div style="font-size:.78rem;color:var(--txt2);font-weight:700">${CFG.nameKanji}</div>` : ''}
+        <div class="bigN">${CFG.name}</div>
+        ${CFG.nameKanji ? `<div class="abKanji">${CFG.nameKanji}</div>` : ''}
         <div class="subT">${CFG.tagline}</div>
-        <div style="font-size:.74rem;color:var(--txt2)">${CFG.location}</div>
+        <div class="abLoc">${CFG.location}</div>
       </div>
     </div>
-    <span class="sl">about</span>
     <p class="bioP" id="abBio"></p>
     <hr/>
     <span class="sl">education</span>
-    <p style="font-size:.82rem;font-weight:700;color:var(--txt)">${CFG.edu}</p>
-    <p style="font-size:.74rem;color:var(--acc);font-weight:700">${CFG.eduNote}</p>
+    <p class="abEdu">${CFG.edu}</p>
+    <p class="abEduNote">${CFG.eduNote}</p>
+    <hr/>
+    ${bCareer()}
     <hr/>
     <span class="sl">other interests</span>
     <div class="tagRow">${int}</div>
-    <hr/>
-    <span class="sl">language proficiency</span>
+    <span class="sl secGap">languages</span>
     <div class="tagRow">${lng}</div>`;
 }
 
@@ -504,30 +553,56 @@ function skillPills(pool) {
   ).join('');
 }
 
-function bProjects() {
-  const projectsPool = CFG.projects || [];
-
-  const pHtml = projectsPool.map(p => {
-    const hi = p.img && p.img.length;
-    const link = p.url
-      ? `<a href="${p.url}" target="_blank" rel="noopener" class="btnSm">${p.btn || 'view project'}</a>`
-      : (p.btn ? `<span class="btnSm btnSmOff">${p.btn}</span>` : '');
-    return `<div class="pCard">
-      <div class="pImg">${hi ? `<img src="${p.img}" alt="${p.title}"/>` : '💻'}</div>
-      <p class="pTit">${p.title}${p.wip ? `<span class="wipTag">work in progress</span>` : ''}</p>
-      ${p.stack ? `<p class="pStack">${p.stack}</p>` : ''}
+/* Only finished, public work gets a card — anything still in progress is a
+   one-liner underneath, so the window leads with what actually shipped. */
+function projCard(p) {
+  const link = p.url
+    ? `<a href="${p.url}" target="_blank" rel="noopener" class="btnSm">${p.btn || 'view project'}</a>`
+    : '';
+  return `<article class="pCard">
+      <div class="pCardHd">
+        <span class="pIco" aria-hidden="true">💻</span>
+        <div>
+          <p class="pTit">${p.title}</p>
+          ${p.stack ? `<p class="pStack">${p.stack}</p>` : ''}
+        </div>
+      </div>
+      ${p.img ? `<div class="pImg"><img src="${p.img}" alt="${p.title}" loading="lazy"/></div>` : ''}
       <p class="pDsc">${p.desc}</p>
       ${link}
+    </article>`;
+}
+
+function wipRow(p) {
+  return `<div class="wipItem">
+      <span class="wipDot" aria-hidden="true"></span>
+      <div>
+        <p class="wipTit">${p.title}</p>
+        <p class="pDsc wipDsc">${p.desc}</p>
+      </div>
     </div>`;
-  }).join('');
+}
+
+function bProjects() {
+  const pool = CFG.projects || [];
+  const shipped = pool.filter(p => !p.wip);
+  const wip = pool.filter(p => p.wip);
+  const tech = CFG.skillsTechnical || [];
+  const creative = CFG.skillsCreative || [];
 
   return `
-    <span class="sl">technical skills</span>
-    <div class="pRow">${skillPills(CFG.skillsTechnical)}</div>
-    <span class="sl">creative &amp; leadership skills</span>
-    <div class="pRow">${skillPills(CFG.skillsCreative)}</div>
+    <span class="sl">skills</span>
+    <div class="accGroup">
+      ${tech.length ? acc('technical', `${tech.length}`, `<div class="pRow">${skillPills(tech)}</div>`) : ''}
+      ${creative.length ? acc('creative &amp; leadership', `${creative.length}`, `<div class="pRow">${skillPills(creative)}</div>`) : ''}
+    </div>
     <hr/>
-    <span class="sl">projects</span>${pHtml}
+    <span class="sl">projects</span>
+    <p class="secNote">finished and public</p>
+    <div class="pGrid">${shipped.map(projCard).join('')}</div>
+    ${wip.length ? `
+    <span class="sl secGap">in the works</span>
+    <div class="wipList">${wip.map(wipRow).join('')}</div>` : ''}
     <hr/>
     ${bGallery()}`;
 }
@@ -549,7 +624,7 @@ function bGallery() {
   if (!slides.length) return '';
 
   const track = slides.map(p => `<figure class="carSlide">
-      <div class="carImg" onclick="openLb('${p.img}')">
+      <div class="carImg" onclick="openLb('${p.img}', '${p.caption.replace(/'/g, "&#39;")}')">
         <img src="${p.img}" alt="${p.caption}" loading="lazy" decoding="async"/>
       </div>
       <figcaption class="carCap">
@@ -588,39 +663,33 @@ function stepSlide(delta) { goSlide(galIdx + delta); }
 /* Work experience and leadership roles share the same card shape (org, role,
    period, bullet list) so both render through one helper. */
 function roleCard(r) {
-  const bullets = (r.bullets || []).map(b => `<p class="pDsc" style="margin-bottom:4px;">• ${b}</p>`).join('');
-  return `<div class="pCard">
-      <p class="pTit">${r.org}</p>
-      <p class="pStack">${r.role} | ${r.period}</p>
-      ${bullets}
+  const bullets = (r.bullets || []).map(b => `<li>${b}</li>`).join('');
+  return `<div class="roleCard">
+      <p class="roleOrg">${r.org}</p>
+      <p class="pStack">${r.role} · ${r.period}</p>
+      <ul class="roleBullets">${bullets}</ul>
     </div>`;
 }
 
-function bExperience() {
-  const workPool = CFG.workExperience || [];
-  const leadershipPool = CFG.leadershipRoles || [];
-  const honoursPool = CFG.honours || [];
+function bCareer() {
+  const work = CFG.workExperience || [];
+  const lead = CFG.leadershipRoles || [];
+  const honours = CFG.honours || [];
 
-  return `
-    <span class="sl">work experience</span>${workPool.map(roleCard).join('')}
-    <hr/>
-    <span class="sl">leadership roles</span>${leadershipPool.map(roleCard).join('')}
-    ${honoursPool.length ? `
-    <hr/>
-    <span class="sl">honours &amp; awards</span>
-    <div class="tagRow">${honoursPool.map(h => `<span class="tag">${h}</span>`).join('')}</div>` : ''}`;
+  return `<span class="sl">career</span>
+    <div class="accGroup">
+      ${work.length ? acc('work experience', `${work.length}`, work.map(roleCard).join('')) : ''}
+      ${lead.length ? acc('leadership roles', `${lead.length}`, lead.map(roleCard).join('')) : ''}
+      ${honours.length ? acc('honours &amp; awards', `${honours.length}`,
+    `<div class="tagRow tagRowFlush">${honours.map(h => `<span class="tag">${h}</span>`).join('')}</div>`) : ''}
+    </div>`;
 }
 
 function bFaq() {
   const faqPool = CFG.faq || [];
-  return `<span class="sl">working with me</span>
-    <div style="margin-top:4px">
-    ${faqPool.map((f, i) => `
-      <div class="fItem">
-        <button class="fQ" onclick="tglFaq(${i})">${f.q}<span class="fArr">+</span></button>
-        <div class="fA" id="fa${i}">${f.a}</div>
-      </div>`).join('')}
-    </div>`;
+  return `<span class="sl">faq</span>
+    <p class="secNote">what working with me looks like</p>
+    <div class="accGroup">${faqPool.map(f => acc(f.q, '', `<p class="accText">${f.a}</p>`)).join('')}</div>`;
 }
 
 function bContact() {
@@ -634,29 +703,6 @@ function bContact() {
     </div>`;
 }
 
-/* The articles window opens instantly with a spinner; the real content
-   (a Supabase fetch) streams in once the lazy module resolves. */
-function bArticles() {
-  return `<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0">
-        <div class="spinner" style="width:30px;height:30px;border-width:3px"></div>
-        <p style="font-size:.78rem;color:var(--txt2)">loading articles…</p>
-      </div>`;
-}
-
-async function hydrateArticles() {
-  try {
-    const mod = await loadArticlesMod();
-    window.openArticleWindow = mod.openArticleWindow;
-    const html = await mod.renderArticlesHtml();
-    const body = document.getElementById('wb-articles');
-    if (body) body.innerHTML = html;
-  } catch (err) {
-    console.error('Failed to load articles:', err);
-    const body = document.getElementById('wb-articles');
-    if (body) body.innerHTML = `<p style="font-size:.8rem;color:var(--txt2)">couldn't load articles right now — try again later.</p>`;
-  }
-}
-
 /* ── init ─────────────────────────────────────────────── */
 /* This function runs when the page loads, setting everything up! */
 async function init() {
@@ -667,17 +713,16 @@ async function init() {
   //    on the reference site even the landing card is a real window.
   const defs = [
     { id: 'home', title: 'home', icon: '🏠', w: 620, h: 515 },
-    { id: 'about', title: 'about', icon: '👤', w: 580, h: 440 },
-    { id: 'articles', title: 'articles', icon: '📰', w: 320, h: 420 },
+    { id: 'about', title: 'about', icon: '👤', w: 580, h: 560 },
+    { id: 'articles', title: 'articles', icon: '📰', w: 420, h: 520 },
     { id: 'projects', title: 'projects', icon: '🎨', w: 580, h: 440 },
-    { id: 'experience', title: 'experience', icon: '💼', w: 580, h: 480 },
     { id: 'links', title: 'links', icon: '🔗', w: 300, h: 240 },
-    { id: 'faq', title: 'working with me', icon: '❓', w: 340, h: 340 },
+    { id: 'faq', title: 'faq', icon: '❓', w: 360, h: 400 },
     { id: 'contact', title: 'contact', icon: '✉️', w: 290, h: 280 },
   ];
 
   // 3. Map each window ID to the function that generates its HTML content
-  const htmlMap = { home: bHome, about: bAbout, articles: bArticles, projects: bProjects, experience: bExperience, links: bLinks, faq: bFaq, contact: bContact };
+  const htmlMap = { home: bHome, about: bAbout, articles: renderArticlesHtml, projects: bProjects, links: bLinks, faq: bFaq, contact: bContact };
 
   // 4. Create each window using our mkWin helper function!
   // All builders are synchronous now, so nothing here waits on the network.
@@ -686,6 +731,11 @@ async function init() {
     // Hide immediately to prevent auto-opening — except home, which is the landing view
     if (d.id !== 'home') closeWin(d.id);
   }
+
+  // 4a2. Every mkWin() call above briefly focuses (and thus retitles) the
+  // window it just created — re-focus 'home' so the tab title/description
+  // match what's actually on screen once the loop settles.
+  focusWin('home');
 
   // 4b. Build the dock so every window has somewhere to be restored from
   mkDock(defs);
@@ -705,9 +755,8 @@ async function init() {
   // Now that all HTML is placed inside the active site, bind the SFX system automatically
   bindSfx();
 
-  // 8. Desktop is ready — fade the loader out, then fetch articles in the background
+  // 8. Desktop is ready — nothing left to fetch, so drop the loader
   document.getElementById('loader').classList.add('done');
-  hydrateArticles();
 }
 
 // Expose functions to global scope for inline HTML handlers
@@ -718,12 +767,8 @@ window.stepSlide = stepSlide;
 window.closeWin = closeWin;
 window.openLb = openLb;
 window.closeLb = closeLb;
-window.tglFaq = tglFaq;
+window.tglAcc = tglAcc;
 window.mkWin = mkWin;
-// Stub until the lazy articles module replaces it in hydrateArticles()
-window.openArticleWindow = async (id) => {
-  const mod = await loadArticlesMod();
-  return mod.openArticleWindow(id);
-};
+window.openArticleWindow = openArticleWindow;
 
 init();

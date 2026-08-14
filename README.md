@@ -5,8 +5,8 @@ An interactive, desktop-OS themed personal portfolio and blog built with vanilla
 ## 🚀 Features
 
 - **OS-Style Window Manager:** Fully draggable and focusable windows that mimic a desktop environment, automatically centered and constrained to the client viewport boundaries.
-- **Dynamic Articles (Supabase):** A built-in "publishing platform" that fetches articles from a Supabase PostgreSQL database.
-- **Markdown Rendering:** Secure, on-the-fly markdown parsing and rendering (powered by `marked` and `DOMPurify`) inside the OS windows.
+- **Static Articles:** Posts live in `src/articles-data.js` as markdown and ship with the bundle — no database, no runtime fetch, nothing to fall over.
+- **Markdown Rendering:** On-the-fly parsing (powered by `marked`) inside the OS windows; the parser is code-split and only loads when a post is opened.
 - **Responsive & Fast:** Adaptive grid layouts, clean CSS styling with media queries, and optimized assets built using Vite.
 - **Custom Theming:** CSS variables for easily tweaking the aesthetic, including colors and dark/light modes.
 
@@ -14,6 +14,6 @@ An interactive, desktop-OS themed personal portfolio and blog built with vanilla
 
 - **Frontend:** HTML5, CSS3, Vanilla JavaScript
 - **Build Tool:** Vite
-- **Database / Backend:** Supabase (PostgreSQL)
-- **Libraries:** `marked` (Markdown parsing), `dompurify` (HTML sanitization)
+- **Content:** Static ES modules (`src/config.js`, `src/articles-data.js`) — no backend
+- **Libraries:** `marked` (Markdown parsing)
 - **Deployment:** Vercel
