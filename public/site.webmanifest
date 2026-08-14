@@ -1,0 +1,13 @@
+{
+  "name": "Francis P.N.",
+  "short_name": "Francis P.N.",
+  "description": "Francis P.N. — Computer Science in Data Science at Monash University Malaysia, and a theological writer.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e0f2fe",
+  "theme_color": "#f5a11c",
+  "icons": [
+    { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

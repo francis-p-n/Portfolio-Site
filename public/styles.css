@@ -16,6 +16,10 @@
       --txt2: #555f6e;
       /* Sharyap uses sharp 1px borders of a medium/dark gray */
       --border: #4b4b4b;
+      /* Inner rules — pills, cards, dividers — are a faint tint of the frame
+         colour rather than the frame colour itself, so only the window edge
+         reads as a hard line. Derived, so it follows the theme automatically. */
+      --line: color-mix(in srgb, var(--border) 26%, transparent);
       --rad: 12px;     /* For the bottom window radius */
       --radSm: 6px;
       --titleH: 42px;  /* Taller title bar like sharyap */
@@ -25,12 +29,14 @@
       --fontHd: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
-    h1, h2, h3, .winTitle, .sl, .fQ {
+    h1, h2, h3, .winTitle, .sl, .accTit {
       text-transform: lowercase;
     }
-    
-    .pTit {
-      text-transform: uppercase;
+
+    /* Prose and proper nouns keep their real casing — an article heading or a
+       project called "easyPresent" should not be flattened by the house style. */
+    .mdBody h1, .mdBody h2, .mdBody h3, .artPageTit {
+      text-transform: none;
     }
 
     [data-theme="dark"] {
@@ -284,7 +290,7 @@
 
     .bigN {
       font-family: var(--fontHd);
-      font-size: 1.6rem;
+      font-size: 1.35rem;
       font-weight: 800;
       line-height: 1.1;
       color: var(--txt);
@@ -346,9 +352,20 @@
 
     hr {
       border: none;
-      border-top: 1.5px solid var(--border);
-      margin: 12px 0
+      border-top: 1.5px solid var(--line);
+      margin: 16px 0
     }
+
+    /* One-line note under a section label */
+    .secNote {
+      font-size: .74rem;
+      color: var(--txt2);
+      margin-bottom: 10px
+    }
+
+    /* A section label that follows content instead of a divider */
+    .secGap { margin-top: 17px }
+    .tagRowFlush { margin-top: 0 }
 
     .btnSm {
       display: inline-block;
@@ -381,7 +398,7 @@
       align-items: center;
       gap: 8px;
       background: color-mix(in srgb, var(--acc) 7%, var(--winBg));
-      border: 1.5px solid var(--border);
+      border: 1.5px solid var(--line);
       border-radius: var(--radSm);
       padding: 8px 11px;
       text-decoration: none;
@@ -416,7 +433,7 @@
 
     .pill {
       background: var(--winBg);
-      border: 1.5px solid var(--border);
+      border: 1.5px solid var(--line);
       border-radius: 20px;
       padding: 3px 10px;
       font-size: .74rem;
@@ -463,7 +480,7 @@
       aspect-ratio: 4 / 3;
       overflow: hidden;
       cursor: zoom-in;
-      border: 1.5px solid var(--border);
+      border: 1.5px solid var(--line);
       border-radius: var(--rad);
       background: color-mix(in srgb, var(--acc) 12%, var(--winBg));
     }
@@ -558,17 +575,46 @@
       transform: scale(1.2);
     }
 
-    /* project */
-    .pCard {
-      margin-bottom: 15px;
-      padding: 0 5px 15px 5px;
-      border-bottom: 1.5px solid var(--border)
+    /* ── project cards ── */
+    .pGrid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px
     }
 
-    .pCard:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0
+    .pCard {
+      border: 1.5px solid var(--line);
+      border-radius: var(--rad);
+      background: color-mix(in srgb, var(--acc) 3%, var(--winBg));
+      padding: 13px;
+      transition: border-color .2s, transform .2s, box-shadow .2s
+    }
+
+    .pCard:hover {
+      border-color: color-mix(in srgb, var(--acc) 60%, transparent);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .08)
+    }
+
+    .pCardHd {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px
+    }
+
+    /* Without a screenshot a project got a full-width empty placeholder box.
+       A small badge carries the same glyph without the dead space. */
+    .pIco {
+      width: 34px;
+      height: 34px;
+      flex-shrink: 0;
+      border-radius: 9px;
+      background: color-mix(in srgb, var(--acc) 14%, var(--winBg));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem
     }
 
     .pImg {
@@ -582,6 +628,7 @@
       justify-content: center;
       font-size: 1.8rem;
       margin-bottom: 9px;
+      border: 1.5px solid var(--line);
     }
 
     .pImg img {
@@ -592,10 +639,10 @@
 
     .pTit {
       font-family: var(--fontHd);
-      font-size: .98rem;
+      font-size: .95rem;
       font-weight: 700;
       color: var(--txt);
-      margin-bottom: 4px
+      margin-bottom: 2px
     }
 
     .pStack {
@@ -607,27 +654,42 @@
       margin-bottom: 6px
     }
 
-    .wipTag {
-      display: inline-block;
-      margin-left: 8px;
-      padding: 2px 8px;
-      border: 1.5px solid var(--border);
-      border-radius: 20px;
-      font-family: var(--font);
-      font-size: .62rem;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      color: var(--txt2);
-      vertical-align: middle
+    /* ── in-progress list ── */
+    /* Unfinished work is deliberately not a card: it sits under the shipped
+       projects as a short list so nothing unreleased reads as a highlight. */
+    .wipList {
+      display: flex;
+      flex-direction: column;
+      gap: 10px
     }
 
-    /* a project with nothing to link to yet gets a flat, non-clickable label */
-    .btnSmOff {
-      background: none;
-      color: var(--txt2);
-      border: 1.5px dashed var(--border);
-      cursor: default
+    .wipItem {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px
+    }
+
+    .wipDot {
+      width: 7px;
+      height: 7px;
+      margin-top: 6px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: var(--acc);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 20%, transparent)
+    }
+
+    .wipTit {
+      font-family: var(--fontHd);
+      font-size: .84rem;
+      font-weight: 700;
+      color: var(--txt);
+      margin-bottom: 2px
+    }
+
+    .wipDsc {
+      font-size: .76rem;
+      margin-bottom: 0
     }
 
     .pDsc {
@@ -637,61 +699,414 @@
       margin-bottom: 9px
     }
 
-    /* faq */
-    .fItem {
-      margin-bottom: 7px
-    }
-
-    .fQ {
-      width: 100%;
-      text-align: left;
-      background: color-mix(in srgb, var(--acc) 7%, var(--winBg));
-      border: 1.5px solid var(--border);
-      border-radius: var(--radSm);
-      padding: 9px 12px;
-      cursor: pointer;
-      font-family: var(--font);
-      font-weight: 700;
-      font-size: .8rem;
-      color: var(--txt);
+    /* ── accordion (career, skills, faq) ────────────────── */
+    .accGroup {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .acc {
+      border: 1.5px solid var(--line);
+      border-radius: var(--radSm);
+      background: color-mix(in srgb, var(--acc) 4%, var(--winBg));
+      transition: border-color .2s, background .2s
+    }
+
+    .acc:hover {
+      border-color: color-mix(in srgb, var(--acc) 55%, transparent)
+    }
+
+    .acc.open {
+      border-color: var(--acc);
+      background: var(--winBg)
+    }
+
+    .accHd {
+      width: 100%;
+      display: flex;
       align-items: center;
-      transition: border-color .2s;
+      gap: 9px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 10px 12px;
+      text-align: left;
+      font-family: var(--font);
+      font-size: .81rem;
+      font-weight: 700;
+      color: var(--txt)
     }
 
-    .fQ:hover,
-    .fQ.open {
-      border-color: var(--acc)
+    .accTit {
+      flex: 1;
+      line-height: 1.45
     }
 
-    .fA {
-      max-height: 0;
+    .accMeta {
+      font-family: var(--fontHd);
+      font-size: .67rem;
+      font-weight: 700;
+      color: var(--txt2);
+      background: color-mix(in srgb, var(--txt2) 13%, transparent);
+      border-radius: 20px;
+      padding: 1px 8px;
+      flex-shrink: 0
+    }
+
+    .accArr {
+      color: var(--acc);
+      font-weight: 900;
+      font-size: 1rem;
+      line-height: 1;
+      flex-shrink: 0;
+      transition: transform .25s
+    }
+
+    .acc.open .accArr {
+      transform: rotate(45deg)
+    }
+
+    /* Collapsed by default; tglAcc() animates the pixel height so a long
+       answer is never clipped the way a guessed max-height would be */
+    .accBody {
+      height: 0;
       overflow: hidden;
-      padding: 0 12px;
+      transition: height .28s ease
+    }
+
+    .accPad {
+      padding: 2px 12px 12px
+    }
+
+    .accText {
+      font-size: .79rem;
+      line-height: 1.7;
+      color: var(--txt2)
+    }
+
+    /* ── a role inside the career accordion ── */
+    .roleCard {
+      padding-bottom: 13px;
+      margin-bottom: 13px;
+      border-bottom: 1.5px solid var(--line)
+    }
+
+    .roleCard:last-child {
+      padding-bottom: 0;
+      margin-bottom: 0;
+      border-bottom: none
+    }
+
+    .roleOrg {
+      font-family: var(--fontHd);
+      font-size: .87rem;
+      font-weight: 700;
+      color: var(--txt);
+      margin-bottom: 3px
+    }
+
+    .roleBullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 7px
+    }
+
+    .roleBullets li {
+      position: relative;
+      padding-left: 14px;
+      font-size: .78rem;
+      line-height: 1.6;
+      color: var(--txt2)
+    }
+
+    .roleBullets li::before {
+      content: '';
+      position: absolute;
+      left: 2px;
+      top: .6em;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--acc)
+    }
+
+    /* ── about ── */
+    .abHead {
+      display: flex;
+      gap: 13px;
+      align-items: center;
+      margin-bottom: 15px
+    }
+
+    .abKanji {
       font-size: .78rem;
       color: var(--txt2);
-      line-height: 1.65;
-      background: color-mix(in srgb, var(--acc) 4%, var(--winBg));
-      border: 1.5px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 var(--radSm) var(--radSm);
-      transition: max-height .3s, padding .25s;
+      font-weight: 700
     }
 
-    .fA.open {
-      max-height: 120px;
-      padding: 9px 12px
+    .abLoc {
+      font-size: .74rem;
+      color: var(--txt2)
     }
 
-    .fArr {
-      transition: transform .25s;
+    .abEdu {
+      font-size: .84rem;
+      font-weight: 700;
+      color: var(--txt)
+    }
+
+    .abEduNote {
+      font-size: .74rem;
       color: var(--acc);
-      font-weight: 900
+      font-weight: 700
     }
 
-    .fQ.open .fArr {
-      transform: rotate(45deg)
+    /* ── articles ───────────────────────────────────────── */
+    .artMeta {
+      font-family: var(--fontHd);
+      font-size: .66rem;
+      font-weight: 700;
+      color: var(--acc);
+      letter-spacing: .4px;
+      margin-bottom: 4px
+    }
+
+    .artFeat {
+      display: block;
+      cursor: pointer;
+      border: 1.5px solid var(--line);
+      border-radius: var(--rad);
+      background: color-mix(in srgb, var(--acc) 5%, var(--winBg));
+      padding: 14px;
+      transition: border-color .2s, transform .2s, box-shadow .2s
+    }
+
+    .artFeat:hover,
+    .artFeat:focus-visible {
+      border-color: var(--acc);
+      outline: none;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .09)
+    }
+
+    .artFeatTit {
+      font-family: var(--fontHd);
+      font-size: 1.02rem;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--txt);
+      margin-bottom: 6px
+    }
+
+    .artGo {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .76rem;
+      font-weight: 700;
+      color: var(--acc)
+    }
+
+    .artArrow {
+      display: inline-block;
+      font-weight: 900;
+      transition: transform .2s
+    }
+
+    .artFeat:hover .artArrow,
+    .artRow:hover .artArrow {
+      transform: translateX(3px)
+    }
+
+    .artList {
+      display: flex;
+      flex-direction: column
+    }
+
+    .artRow {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      padding: 10px 8px;
+      border-radius: var(--radSm);
+      border-bottom: 1.5px solid var(--line);
+      transition: background .2s
+    }
+
+    .artRow:last-child {
+      border-bottom: none
+    }
+
+    .artRow:hover,
+    .artRow:focus-visible {
+      outline: none;
+      background: color-mix(in srgb, var(--acc) 7%, transparent)
+    }
+
+    .artRowTit {
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--txt);
+      margin-bottom: 2px
+    }
+
+    .artRowDsc {
+      font-size: .76rem;
+      margin-bottom: 0
+    }
+
+    .artRow .artArrow {
+      color: var(--acc);
+      flex-shrink: 0;
+      padding-top: 2px
+    }
+
+    .artMore {
+      display: inline-block;
+      margin-top: 15px;
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--acc);
+      text-decoration: none
+    }
+
+    .artMore:hover {
+      text-decoration: underline;
+      text-underline-offset: 3px
+    }
+
+    /* ── an opened article ── */
+    .artPage {
+      padding: 8px 6px 30px
+    }
+
+    .artPageTit {
+      font-size: 1.7rem;
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--txt);
+      margin-bottom: 8px
+    }
+
+    .artPageSub {
+      font-size: .93rem;
+      color: var(--txt2);
+      line-height: 1.6;
+      margin-bottom: 20px
+    }
+
+    .artByline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 26px
+    }
+
+    .artAvatar {
+      width: 34px;
+      height: 34px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      border: 1.5px solid var(--acc);
+      background: color-mix(in srgb, var(--acc) 18%, var(--winBg));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .95rem
+    }
+
+    .artByName {
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--txt)
+    }
+
+    .artByDate {
+      font-size: .74rem;
+      color: var(--txt2)
+    }
+
+    .artPageTags {
+      margin-top: 30px
+    }
+
+    /* ── rendered markdown ── */
+    .mdBody {
+      color: var(--txt);
+      font-size: .9rem;
+      line-height: 1.8
+    }
+
+    .mdBody > * + * {
+      margin-top: 15px
+    }
+
+    .mdBody h1, .mdBody h2, .mdBody h3 {
+      font-weight: 800;
+      line-height: 1.3;
+      margin-top: 28px
+    }
+
+    .mdBody h1 { font-size: 1.25rem }
+    .mdBody h2 { font-size: 1.1rem }
+    .mdBody h3 { font-size: 1rem }
+
+    .mdBody strong {
+      color: var(--txt);
+      font-weight: 800
+    }
+
+    .mdBody a {
+      color: var(--acc);
+      text-decoration: underline;
+      text-underline-offset: 3px
+    }
+
+    .mdBody ul, .mdBody ol {
+      padding-left: 20px
+    }
+
+    .mdBody li + li {
+      margin-top: 6px
+    }
+
+    .mdBody img {
+      max-width: 100%;
+      height: auto;
+      border-radius: var(--radSm)
+    }
+
+    .mdBody blockquote {
+      border-left: 3px solid var(--acc);
+      padding-left: 14px;
+      font-style: italic;
+      color: var(--txt2)
+    }
+
+    .mdBody code {
+      font-family: var(--fontHd);
+      font-size: .85em;
+      background: color-mix(in srgb, var(--acc) 12%, transparent);
+      padding: 2px 5px;
+      border-radius: 4px
+    }
+
+    .mdBody pre {
+      background: color-mix(in srgb, var(--acc) 8%, transparent);
+      border: 1.5px solid var(--line);
+      border-radius: var(--radSm);
+      padding: 14px;
+      overflow-x: auto
+    }
+
+    .mdBody pre code {
+      background: none;
+      padding: 0
     }
 
     /* contact */
@@ -812,6 +1227,20 @@
     }
     .deskIcoLbl { font-weight: 700; font-size: .85rem; }
 
+    /* The CTA reuses the desktop-icon shape (borderless glyph + label) so it
+       reads as part of the same icon family, not a foreign button — the
+       accent-filled circle behind the glyph is what marks it as primary,
+       echoing the same circle treatment as .avi elsewhere on the site. */
+    .deskCta { flex: 0 0 auto; margin: 6px 0 4px; }
+    .deskCtaGlyph {
+      width: 58px; height: 58px; border-radius: 50%;
+      background: color-mix(in srgb, var(--acc) 18%, var(--winBg));
+      border: 2.5px solid var(--acc);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; filter: none;
+    }
+    .deskCta .deskIcoLbl { color: var(--acc); font-weight: 800; }
+
     /* Hand-drawn SVGs inherit the current text colour so they follow the theme */
     .hasIcon {
       display: block;
@@ -905,4 +1334,104 @@
     }
     @keyframes spin {
       to { transform: rotate(360deg); }
+    }
+
+    /* ── static pages (404 / privacy / terms) ───────────── */
+    /* These aren't windows — they're real, crawlable pages, so they get
+       plain document flow instead of the fixed/overflow-hidden desktop shell. */
+    .staticBody {
+      overflow: auto;
+      min-height: 100%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 64px 20px 120px;
+    }
+    .staticCard {
+      width: 100%;
+      max-width: 620px;
+      background: var(--winBg);
+      border: 2px solid var(--border);
+      border-radius: var(--rad);
+      box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+      padding: 32px clamp(20px, 5vw, 40px);
+    }
+    .staticCard h1 {
+      font-family: var(--fontHd);
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .staticCard h2 {
+      font-size: .95rem;
+      font-weight: 800;
+      color: var(--acc);
+      margin-top: 26px;
+      margin-bottom: 8px;
+    }
+    .staticCard p, .staticCard li {
+      font-size: .85rem;
+      line-height: 1.8;
+      color: var(--txt2);
+    }
+    .staticCard ul { padding-left: 20px; margin: 6px 0; }
+    .staticCard a { color: var(--acc); font-weight: 700; }
+    .staticMeta {
+      font-size: .72rem;
+      color: var(--txt2);
+      margin-bottom: 22px;
+    }
+    .staticEmoji {
+      font-size: 2.6rem;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .staticBack {
+      display: inline-block;
+      margin-top: 22px;
+    }
+
+    /* ── footer bar ──────────────────────────────────────── */
+    /* A thin legal/credit strip anchored under the desktop so Privacy/Terms
+       are always reachable without hunting through windows. */
+    #siteFooter {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 5;
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+      font-size: .68rem;
+      color: var(--txt2);
+      pointer-events: none;
+    }
+    #siteFooter a {
+      color: var(--txt2);
+      pointer-events: auto;
+      text-decoration: none;
+    }
+    #siteFooter a:hover { color: var(--acc); text-decoration: underline; }
+
+    /* ── sticky mobile CTA ───────────────────────────────── */
+    #mobileCta {
+      display: none;
+      position: fixed;
+      left: 12px; right: 12px; bottom: 12px;
+      z-index: 400;
+      text-align: center;
+      background: var(--acc);
+      color: #fff;
+      font-weight: 700;
+      font-size: .85rem;
+      padding: 12px 16px;
+      border-radius: var(--radSm);
+      text-decoration: none;
+      box-shadow: 0 8px 22px rgba(0,0,0,.2);
+    }
+    @media (max-width: 600px) {
+      #mobileCta { display: block; }
+      /* Give the dock and footer room above the sticky CTA bar */
+      #dock { bottom: 64px; }
+      #siteFooter { display: none; }
     }

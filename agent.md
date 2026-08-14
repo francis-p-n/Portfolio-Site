@@ -12,11 +12,9 @@ Francis's Portfolio OS is a web-based portfolio resembling a classic desktop OS.
 ## 🛠️ Technology Stack
 - **Frontend Core:** Vanilla HTML5, CSS3, ES6 JavaScript.
 - **Bundler / Build System:** Vite (`package.json`).
-- **Database:** Supabase (PostgreSQL) hosting articles and content.
+- **Content:** Static ES modules — site copy in `src/config.js`, articles in `src/articles-data.js`. There is no backend.
 - **Client Libraries:**
-  - `marked` (Markdown parsing)
-  - `dompurify` (HTML sanitization)
-  - `@supabase/supabase-js` (database queries)
+  - `marked` (Markdown parsing, lazily imported)
 - **Containerization:** Docker (`Dockerfile`, Nginx server).
 
 ---
@@ -24,7 +22,8 @@ Francis's Portfolio OS is a web-based portfolio resembling a classic desktop OS.
 ## 📁 Key Files & Directories
 - [index.html](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/index.html): Main application shell and UI layout.
 - [package.json](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/package.json): Node project manifest and dependencies.
-- [supabase_setup.sql](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/supabase_setup.sql): Database table schema and row-level security policy creation script.
+- `src/config.js`: All site copy — bio, skills, projects, career, faq.
+- `src/articles-data.js`: Article content as markdown; add a post by appending to the array.
 - [Dockerfile](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/Dockerfile): Static distribution server setup.
 - [architecture.md](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/architecture.md): Visual diagrams and data flows.
 - [todo.md](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/todo.md): Active issues, roadmap backlog, and completed items list.
@@ -33,7 +32,7 @@ Francis's Portfolio OS is a web-based portfolio resembling a classic desktop OS.
 
 ## ⚡ Active Context
 - **Current Development Focus:** Mobile touch gestures and interactive/custom workspace features.
-- **Pending Tasks:** Implement swipe/touch gesture recognition for window dragging/resizing.
+- **Pending Tasks:** Implement swipe/touch gesture recognition for window dragging/resizing; write the two drafted articles in `src/articles-data.js`.
 
 ---
 

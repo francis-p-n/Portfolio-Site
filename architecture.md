@@ -6,16 +6,16 @@ This document outlines the architecture, data flow, and components of Francis's 
 
 ## Component Overview
 
-The application is built as a lightweight, single-page application (SPA) with a static frontend and a serverless backend.
+The application is built as a lightweight, single-page application (SPA). It is fully static — all content is bundled at build time and there is no backend to call at runtime.
 
 ```mermaid
 graph TD
     Client[Client Browser: HTML/CSS/JS]
+    Content[Static content modules: config.js / articles-data.js]
     Vite[Vite Bundler & Dev Server]
-    Supabase[Supabase DB / Backend]
     Nginx[Docker Nginx Container]
 
-    Client -->|Fetches content| Supabase
+    Content -->|Bundled into the app| Vite
     Vite -->|Bundles static files| Client
     Nginx -->|Serves static files| Client
 ```
@@ -24,24 +24,23 @@ graph TD
 - **Core:** Vanilla HTML5, CSS3 (using CSS custom variables for theming), and ES6+ JavaScript.
 - **Window Manager:** A custom JavaScript-based window manager that manages absolute-positioned floating windows, handles focus ordering (z-index), and implements mouse drag-and-drop mechanics. It automatically centers windows and constrains their dimensions (`safeW` / `safeH`) based on current client viewport boundaries (`window.innerWidth` and `window.innerHeight`) on window creation and re-opening to ensure usability on smaller screens.
 - **Third-Party Libraries:**
-  - `marked`: Parses article contents written in Markdown into structured HTML on-the-fly.
-  - `dompurify`: Sanitizes generated HTML to prevent XSS (Cross-Site Scripting) injection from database-fetched articles.
-  - `@supabase/supabase-js`: Client SDK to interact with the Supabase project.
+  - `marked`: Parses article markdown into HTML when a post is opened. Code-split, so it is not on the critical path.
 
-### 2. Database Backend (Supabase)
-- **Engine:** PostgreSQL.
-- **Table Schema:** [articles](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/supabase_setup.sql)
-  - `id` (uuid, primary key)
-  - `title` (text, not null)
-  - `description` (text)
-  - `content_md` (text, not null)
-  - `img` (text)
-  - `tags` (text[])
-  - `is_highlight` (boolean)
-  - `created_at` (timestamp)
-- **Security:** Row Level Security (RLS) is enabled.
-  - Public read access is allowed.
-  - Admin (insert, update, delete) requires authentication.
+### 2. Content
+All content is authored as ES modules and bundled at build time.
+
+- `src/config.js` — site copy: bio, education, interests, skills, projects, gallery, career, faq, links.
+- `src/articles-data.js` — the article set. Each entry:
+  - `id` (slug, used for the article window id)
+  - `title`, `description`
+  - `date` (ISO; drives sort order and the byline)
+  - `tags` (string[]), `img` (optional)
+  - `highlight` (the post featured at the top of the window)
+  - `draft` (excluded from the site entirely)
+  - `body` (markdown)
+
+  The module exports `PUBLISHED`, which filters out drafts and empty bodies and
+  sorts newest-first — one place enforces what is publicly visible.
 
 ### 3. Deployment & Infrastructure
 - **Development Server:** Vite dev server.
@@ -49,23 +48,21 @@ graph TD
 
 ---
 
-## Data Flow (Article Fetching)
+## Data Flow (Opening an Article)
 
 ```mermaid
 sequenceDiagram
     participant User
     participant App as App (articles.js)
-    participant Client as Supabase SDK
-    participant DB as Supabase PostgreSQL
+    participant Data as articles-data.js (bundled)
+    participant Marked as marked (lazy chunk)
 
-    User->>App: Clicks "Articles" app icon
-    App->>Client: Fetch highlights & list of articles
-    Client->>DB: Query articles (select * from articles)
-    DB-->>Client: Returns JSON rows
-    Client-->>App: Returns array of Article objects
-    App->>App: Render window with title/descriptions
-    User->>App: Clicks on a specific article
-    App->>App: Compile markdown content using 'marked'
-    App->>App: Sanitize output HTML using 'DOMPurify'
-    App->>User: Displays compiled article in OS Reader Window
+    Note over App,Data: The list is built at window-creation time — no network
+    App->>Data: Read PUBLISHED (drafts filtered, newest first)
+    Data-->>App: Article objects
+    App->>App: Render feature card + list
+    User->>App: Clicks an article
+    App->>Marked: import('marked') on first open only
+    Marked-->>App: Compiled HTML from the post's markdown
+    App->>User: Displays the article in an OS reader window
 ```

@@ -25,25 +25,22 @@ export const CFG = {
     { label: "email me", emoji: "✉️", url: "mailto:francis.pn.29757@gmail.com" },
   ],
 
-  /* Skills are split by category, and every entry carries a proficiency level. */
+  /* Deliberately short — only what I actually reach for, each with a
+     proficiency level so nothing reads as a bare keyword. */
   skillsTechnical: [
     { name: "Python", level: "Intermediate" },
     { name: "C++", level: "Intermediate" },
     { name: "SQL — Oracle & MongoDB", level: "Intermediate" },
     { name: "Data Analytics", level: "Intermediate" },
-    { name: "Scikit-learn", level: "Basic" },
     { name: "Web Scraping — openpyxl / requests", level: "Intermediate" },
-    { name: "React / Frontend", level: "Basic" },
     { name: "Git & GitHub", level: "Basic" },
-    { name: "Microsoft Office", level: "Intermediate" },
   ],
   skillsCreative: [
     { name: "Theological Writing", level: "Advanced" },
     { name: "Research & Verification Methodology", level: "Advanced" },
-    { name: "Event Photography", level: "Intermediate" },
     { name: "Public Speaking", level: "Intermediate" },
     { name: "Mentorship & Youth Leadership", level: "Intermediate" },
-    { name: "Canva & Affinity Design", level: "Intermediate" },
+    { name: "Event Photography", level: "Intermediate" },
   ],
 
   projects: [
@@ -176,11 +173,9 @@ export const CFG = {
     { q: "What are you currently working on?", a: "Forming the Monash Catholic Society (MCS), the <em>Life to the Fullness</em> writing project, Project Avaris (an RPG), and a few hardware side-projects." },
   ],
 
-  articles: [
-    { title: "My test thoughts", img: "", desc: "A brief summary of my most recent article, exploring topics on leadership, storytelling, and community.", url: "https://substack.com/@francispn", btn: "read more" },
-    { title: "Theological Explorations", img: "", desc: "A recap of my recent notes on the intersection of faith and modern youth development.", url: "https://substack.com/@francispn", btn: "read more" },
-    { title: "Journalism highlights", img: "", desc: "A deep dive into some storytelling exercises and local event administration.", url: "https://substack.com/@francispn", btn: "read more" }
-  ],
+  /* Article content lives in src/articles-data.js — this is where the
+     "everything else" link at the foot of the articles window points. */
+  substackUrl: "https://substack.com/@francispn",
 
   /* Provide filenames here for sound effects (e.g., 'hover.mp3' from zapsplat inside this folder) */
   sfxHover: "",
