@@ -1227,20 +1227,6 @@
     }
     .deskIcoLbl { font-weight: 700; font-size: .85rem; }
 
-    /* The CTA reuses the desktop-icon shape (borderless glyph + label) so it
-       reads as part of the same icon family, not a foreign button — the
-       accent-filled circle behind the glyph is what marks it as primary,
-       echoing the same circle treatment as .avi elsewhere on the site. */
-    .deskCta { flex: 0 0 auto; margin: 6px 0 4px; }
-    .deskCtaGlyph {
-      width: 58px; height: 58px; border-radius: 50%;
-      background: color-mix(in srgb, var(--acc) 18%, var(--winBg));
-      border: 2.5px solid var(--acc);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.6rem; filter: none;
-    }
-    .deskCta .deskIcoLbl { color: var(--acc); font-weight: 800; }
-
     /* Hand-drawn SVGs inherit the current text colour so they follow the theme */
     .hasIcon {
       display: block;

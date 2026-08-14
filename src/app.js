@@ -501,10 +501,6 @@ function bHome() {
       ${CFG.avatar ? `<img src="${CFG.avatar}" class="deskAvatar"/>` : `<div class="deskEmoji">${CFG.avatarEmoji}</div>`}
       <h1 class="deskTitle">hi! i'm <span style="color:var(--acc); text-transform:lowercase">${CFG.name}</span></h1>
       <p class="deskSub">${CFG.tagline}</p>
-      <button class="deskIcon deskCta" onclick="openWin('contact')">
-        <span class="deskIcoGlyph deskCtaGlyph">✉️</span>
-        <span class="deskIcoLbl">let's talk</span>
-      </button>
       <div class="deskGrid">${navBtns}</div>
     </div>`;
 }
