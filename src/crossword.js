@@ -1,5 +1,5 @@
 /* ── theology crossword ──────────────────────────────
-   Hand-built 11x10. Every maximal run of two or more white cells is a real
+   Hand-built 11x9. Every maximal run of two or more white cells is a real
    entry with a clue — there is no filler, and the grid is checked against
    that promise at load rather than trusted.
 
@@ -7,39 +7,38 @@
    main bundle. */
 
 const GRID = [
-  'CHRISTOLOGY',
-  'H#O#E#R#M#A',
-  'E#S#P#IRE#H',
-  'R#ACT#G#G#W',
-  'U#R#U#E#AVE',
-  'B#YEA#N###H',
-  'I###G######',
-  'M###INTROIT',
-  '####N######',
-  '####TRINITY',
+  'COMMANDMENT',
+  'A#O#N#I#A#E',
+  'T#S#G#S#S#M',
+  'H#E#E#C#T#P',
+  'E#S#L#IRE#L',
+  'D#####P#RUE',
+  'REVIVAL####',
+  'A#####ELDER',
+  'LAMENT#####',
 ];
 
 const ROWS = GRID.length;
 const COLS = GRID[0].length;
 const BLOCK = '#';
 
-/* Keyed by "row,col,direction". Clued the way a themed puzzle clues: by
-   allusion, not definition. */
+/* Keyed by "row,col,direction". Aimed at general knowledge rather than a
+   theology degree — the answers should be recognisable to anyone who has been
+   near a church or a Bible, and the clues point at the familiar story. */
 const CLUES = {
-  '0,0,A': 'The question Chalcedon spent a whole council answering: who, exactly, Jesus is',
-  '2,6,A': 'Wrath, as the list of seven has it',
-  '3,2,A': 'One of the apostles’ twenty-eight, in the singular',
-  '4,8,A': 'Gabriel’s opening word, in Jerome’s Latin',
-  '5,2,A': '"Let your — be —" (Matthew 5:37, in the older wording)',
-  '7,4,A': 'Sung while the procession is still walking in',
-  '9,4,A': 'One substance, three persons',
+  '0,0,A': 'One of the ten Moses carried down the mountain',
+  '4,6,A': 'Anger — one of the seven deadly sins',
+  '5,8,A': 'To regret something bitterly',
+  '6,0,A': 'A tent, a visiting preacher and a week of meetings',
+  '7,6,A': 'Senior member of a congregation, with a role to match',
+  '8,0,A': 'What roughly a third of the psalms are doing',
 
-  '0,0,D': 'Posted east of Eden with a flaming sword',
-  '0,2,D': 'Fifteen decades until 2002, when a fourth set of mysteries was added',
-  '0,4,D': 'The seventy translators — or the Greek Old Testament they left behind',
-  '0,6,D': 'Alexandrian allegorist, condemned three centuries after his death',
-  '0,8,D': 'The last word, in Revelation',
-  '0,10,D': 'Four consonants the scribes would not pronounce',
+  '0,0,D': "The big church with the bishop's chair in it",
+  '0,2,D': 'He got the tablets but never the promised land',
+  '0,4,D': 'Gabriel, for one',
+  '0,6,D': 'One of the twelve who followed Jesus',
+  '0,8,D': 'The empty tomb, marked annually',
+  '0,10,D': 'Jesus overturned the money changers’ tables in this one',
 };
 
 const key = (r, c, d) => `${r},${c},${d}`;
