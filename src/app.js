@@ -1,5 +1,6 @@
 import { CFG } from './config.js';
 import { renderArticlesHtml, openArticleWindow } from './articles.js';
+import { startDuck, spawn as spawnDuck } from './duck.js';
 /* ── apply CFG colors ──────────────────────────────── */
 /* Updating CSS root vars to apply the user's CFG colors */
 document.documentElement.style.setProperty('--acc', CFG.accent);
@@ -774,6 +775,10 @@ async function init() {
 
   // 8. Desktop is ready — nothing left to fetch, so drop the loader
   document.getElementById('loader').classList.add('done');
+
+  // 9. Start watching for ducks. Sightings are rare by design; window.duck()
+  //    summons one on demand, which is the only practical way to test it.
+  startDuck();
 }
 
 // Expose functions to global scope for inline HTML handlers
@@ -788,5 +793,7 @@ window.tglAcc = tglAcc;
 window.pokeAvi = pokeAvi;
 window.mkWin = mkWin;
 window.openArticleWindow = openArticleWindow;
+/* Debug hook: summon a duck rather than waiting out the sighting interval. */
+window.duck = spawnDuck;
 
 init();

@@ -1579,6 +1579,318 @@
     }
     #siteFooter a:hover { color: var(--acc); text-decoration: underline; }
 
+
+    /* ── the duck ───────────────────────────────────────── */
+    /* Sits just above the waterline and drifts across. It rides above the
+       footer strip but below every window, so it paddles behind them. */
+    #duck {
+      position: fixed;
+      bottom: 92px;
+      left: 0;
+      z-index: 4;
+      width: 62px;
+      height: 40px;
+      padding: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      animation-duration: var(--swim, 42s);
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      transition: opacity .45s, transform .45s;
+    }
+
+    #duck:hover { transform: scale(1.08) }
+
+    /* Caught, or swum off — either way it ducks under. */
+    #duck.duckGone {
+      opacity: 0;
+      transform: translateY(14px) scale(.9);
+      pointer-events: none
+    }
+
+    @keyframes duckSwimRight {
+      from { left: -80px }
+      to   { left: calc(100vw + 80px) }
+    }
+
+    @keyframes duckSwimLeft {
+      from { left: calc(100vw + 80px) }
+      to   { left: -80px }
+    }
+
+    .duckBob {
+      display: block;
+      animation: duckBob 3.4s ease-in-out infinite
+    }
+
+    @keyframes duckBob {
+      0%, 100% { transform: translateY(0) rotate(-2deg) }
+      50%      { transform: translateY(-5px) rotate(2deg) }
+    }
+
+    .duckArt {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible
+    }
+
+    .duckFlip { transform: scaleX(-1) }
+
+    .duckBody {
+      fill: var(--winBg);
+      stroke: var(--txt);
+      stroke-width: 2.2;
+      stroke-linejoin: round
+    }
+
+    .duckWing {
+      fill: color-mix(in srgb, var(--txt) 12%, transparent);
+      stroke: var(--txt);
+      stroke-width: 1.6;
+      stroke-linejoin: round
+    }
+
+    .duckBeak {
+      fill: var(--acc);
+      stroke: var(--txt);
+      stroke-width: 1.6;
+      stroke-linejoin: round
+    }
+
+    .duckEye { fill: var(--txt) }
+
+    @media (prefers-reduced-motion: reduce) {
+      .duckBob { animation: none }
+    }
+
+    /* ── puzzles (duck easter egg) ──────────────────────── */
+    .pzWrap {
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      align-items: stretch
+    }
+
+    .pzNote {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .9px;
+      color: var(--txt2);
+      text-align: center
+    }
+
+    .pzMsg {
+      font-size: .78rem;
+      line-height: 1.5;
+      color: var(--txt2);
+      text-align: center;
+      min-height: 2.3em
+    }
+
+    .pzWin { color: var(--acc); font-weight: 700 }
+    .pzWarn { color: var(--txt); font-weight: 600 }
+
+    /* Connections shows four buttons at once, which will not fit on one row
+       on a phone — let them wrap rather than overflow the window. */
+    .pzBtns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px
+    }
+
+    .pzBtn {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding-left: 10px;
+      padding-right: 10px;
+      text-align: center
+    }
+    .pzBtn:disabled { opacity: .4; cursor: default; filter: none }
+
+    /* ── sudoku ── */
+    .sGrid {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      border: 2px solid var(--txt);
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--winBg)
+    }
+
+    .sCell {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: .5px solid color-mix(in srgb, var(--txt2) 35%, transparent);
+      background: var(--winBg);
+      font-family: var(--fontHd);
+      font-size: clamp(.7rem, 3.4vw, .95rem);
+      font-weight: 600;
+      color: var(--acc);
+      cursor: pointer;
+      padding: 0;
+      transition: background .12s
+    }
+
+    /* The 3x3 boxes need a heavier rule than the cell grid */
+    .sEdgeR { border-right: 1.5px solid var(--txt) }
+    .sEdgeB { border-bottom: 1.5px solid var(--txt) }
+
+    .sGiven { color: var(--txt); font-weight: 800; cursor: default }
+    .sSame { background: color-mix(in srgb, var(--acc) 13%, var(--winBg)) }
+    .sSel { background: color-mix(in srgb, var(--acc) 30%, var(--winBg)) }
+    .sBad { background: color-mix(in srgb, #e5484d 26%, var(--winBg)); color: #c62a2f }
+
+    .sPad {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px
+    }
+
+    .sKey {
+      padding: 9px 0;
+      border: 1.5px solid var(--line);
+      border-radius: var(--radSm);
+      background: color-mix(in srgb, var(--acc) 5%, var(--winBg));
+      font-family: var(--fontHd);
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--txt);
+      cursor: pointer;
+      transition: background .15s, border-color .15s
+    }
+
+    .sKey:hover { border-color: var(--acc) }
+    .sKeyDone { opacity: .32 }
+    .sKeyDel { grid-column: span 1 }
+
+    /* ── wordle ── */
+    .wGrid {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      align-items: center
+    }
+
+    .wRow { display: flex; gap: 5px }
+
+    .wTile {
+      width: 46px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--line);
+      border-radius: 4px;
+      font-family: var(--fontHd);
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--txt);
+      text-transform: uppercase
+    }
+
+    .wFilled { border-color: var(--txt2) }
+
+    .w-correct { background: var(--acc); border-color: var(--acc); color: #fff }
+    .w-present { background: #b59f3b; border-color: #b59f3b; color: #fff }
+    .w-absent { background: color-mix(in srgb, var(--txt2) 45%, var(--winBg)); border-color: transparent; color: #fff }
+
+    .wKeys { display: flex; flex-direction: column; gap: 5px }
+    .wKeyRow { display: flex; gap: 4px; justify-content: center }
+
+    .wKey {
+      flex: 1;
+      min-width: 0;
+      padding: 11px 2px;
+      border: 1.5px solid var(--line);
+      border-radius: var(--radSm);
+      background: color-mix(in srgb, var(--acc) 5%, var(--winBg));
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--txt);
+      cursor: pointer;
+      text-transform: uppercase
+    }
+
+    .wKey:hover { border-color: var(--acc) }
+    .wKeyWide { flex: 1.6; font-size: .62rem }
+
+    /* ── connections ── */
+    .cnBands { display: flex; flex-direction: column; gap: 5px }
+
+    .cnBand {
+      padding: 8px 10px;
+      border-radius: var(--radSm);
+      text-align: center;
+      color: #3b2f10
+    }
+
+    .cnBand b {
+      display: block;
+      font-size: .76rem;
+      font-weight: 800;
+      text-transform: lowercase
+    }
+
+    .cnBand span { font-size: .68rem; font-weight: 600 }
+
+    .cnA { background: #f3d16b }
+    .cnB { background: #a8c368 }
+    .cnC { background: #7cb0dd }
+    .cnD { background: #b98fd0 }
+
+    .cnGrid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px
+    }
+
+    .cnTile {
+      aspect-ratio: 1.35;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px;
+      border: 1.5px solid var(--line);
+      border-radius: var(--radSm);
+      background: color-mix(in srgb, var(--acc) 6%, var(--winBg));
+      font-size: clamp(.5rem, 2.3vw, .68rem);
+      font-weight: 800;
+      color: var(--txt);
+      cursor: pointer;
+      text-align: center;
+      overflow-wrap: anywhere;
+      line-height: 1.15;
+      transition: background .15s, border-color .15s
+    }
+
+    .cnTile:hover { border-color: var(--acc) }
+
+    .cnPicked {
+      background: var(--txt);
+      border-color: var(--txt);
+      color: var(--winBg)
+    }
+
+    .cnLives {
+      display: flex;
+      gap: 6px;
+      justify-content: center
+    }
+
+    .cnLife {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--txt2);
+      transition: background .2s, transform .2s
+    }
+
+    .cnLost { background: color-mix(in srgb, var(--txt2) 22%, transparent); transform: scale(.8) }
+
     /* ── sticky mobile CTA ───────────────────────────────── */
     #mobileCta {
       display: none;
