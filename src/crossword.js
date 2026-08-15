@@ -1,5 +1,5 @@
 /* ── theology crossword ──────────────────────────────
-   Hand-built 9x9. Every maximal run of two or more white cells is a real
+   Hand-built 11x10. Every maximal run of two or more white cells is a real
    entry with a clue — there is no filler, and the grid is checked against
    that promise at load rather than trusted.
 
@@ -7,38 +7,43 @@
    main bundle. */
 
 const GRID = [
-  'GENEALOGY',
-  'E###D###A',
-  'N###V#ASH',
-  'E###E###W',
-  'SATAN#EVE',
-  'I#E#T###H',
-  'SIN##ARK#',
-  '##T######',
-  'ATHEISM##',
+  'CHRISTOLOGY',
+  'H#O#E#R#M#A',
+  'E#S#P#IRE#H',
+  'R#ACT#G#G#W',
+  'U#R#U#E#AVE',
+  'B#YEA#N###H',
+  'I###G######',
+  'M###INTROIT',
+  '####N######',
+  '####TRINITY',
 ];
 
-const N = GRID.length;
+const ROWS = GRID.length;
+const COLS = GRID[0].length;
 const BLOCK = '#';
 
-/* Keyed by "row,col,direction". */
+/* Keyed by "row,col,direction". Clued the way a themed puzzle clues: by
+   allusion, not definition. */
 const CLUES = {
-  '0,0,A': "Matthew opens his gospel with Christ's — tracing him back to Abraham",
-  '2,6,A': '— Wednesday, when the forty days begin',
-  '4,0,A': 'The accuser who wagers with God over Job',
-  '4,6,A': 'She is offered the fruit in the third chapter of Genesis',
-  '6,0,A': "What the Greek 'hamartia' literally calls missing the mark",
-  '6,5,A': 'Noah built one; another held the covenant',
-  '8,0,A': 'The position that there is no god at all',
+  '0,0,A': 'The question Chalcedon spent a whole council answering: who, exactly, Jesus is',
+  '2,6,A': 'Wrath, as the list of seven has it',
+  '3,2,A': 'One of the apostles’ twenty-eight, in the singular',
+  '4,8,A': 'Gabriel’s opening word, in Jerome’s Latin',
+  '5,2,A': '"Let your — be —" (Matthew 5:37, in the older wording)',
+  '7,4,A': 'Sung while the procession is still walking in',
+  '9,4,A': 'One substance, three persons',
 
-  '0,0,D': 'In the beginning — the first book',
-  '0,4,D': 'The four weeks of waiting before Christmas',
-  '0,8,D': 'One rendering of the four letters God gives Moses at the bush',
-  '4,2,D': 'The fraction a tithe literally means',
+  '0,0,D': 'Posted east of Eden with a flaming sword',
+  '0,2,D': 'Fifteen decades until 2002, when a fourth set of mysteries was added',
+  '0,4,D': 'The seventy translators — or the Greek Old Testament they left behind',
+  '0,6,D': 'Alexandrian allegorist, condemned three centuries after his death',
+  '0,8,D': 'The last word, in Revelation',
+  '0,10,D': 'Four consonants the scribes would not pronounce',
 };
 
 const key = (r, c, d) => `${r},${c},${d}`;
-const isBlock = (r, c) => r < 0 || c < 0 || r >= N || c >= N || GRID[r][c] === BLOCK;
+const isBlock = (r, c) => r < 0 || c < 0 || r >= ROWS || c >= COLS || GRID[r][c] === BLOCK;
 
 /* Standard crossword numbering: a cell is numbered when it opens an across or
    a down entry, scanning left-to-right, top-to-bottom. */
@@ -47,8 +52,8 @@ function buildEntries() {
   const entries = [];
   let n = 0;
 
-  for (let r = 0; r < N; r++) {
-    for (let c = 0; c < N; c++) {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
       if (isBlock(r, c)) continue;
       const startsA = isBlock(r, c - 1) && !isBlock(r, c + 1);
       const startsD = isBlock(r - 1, c) && !isBlock(r + 1, c);
@@ -73,25 +78,24 @@ function buildEntries() {
 const { numbers: NUMBERS, entries: ENTRIES } = buildEntries();
 
 /* The grid and the clue list have to agree; a missing clue is a bug in the
-   data, not something to discover mid-puzzle. */
+   data, not something to discover mid-solve. */
 ENTRIES.forEach(e => {
   if (e.clue === '(no clue)') console.warn('crossword: no clue for', e.num + e.dir, e.answer);
 });
 
 const KEYS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
 
-export const meta = { id: 'crossword', title: 'crossword', icon: '✝️', w: 440, h: 680 };
+export const meta = { id: 'crossword', title: 'crossword', icon: '✝️', w: 470, h: 700 };
 
 export function start(root) {
   /* One letter per white cell, empty until typed. */
   const fill = GRID.map(row => [...row].map(ch => (ch === BLOCK ? null : '')));
   let cur = ENTRIES[0];
   let at = 0;                 /* index into cur.cells */
-  let checked = false;        /* wrong letters stay flagged until next edit */
+  let checked = false;        /* wrong letters stay flagged until the next edit */
   let done = false;
   let message = 'across and down. click a square, or pick a clue.';
 
-  const cell = ([r, c]) => fill[r][c];
   const inCur = new Set();
 
   function refreshHighlight() {
@@ -108,7 +112,7 @@ export function start(root) {
     const here = `${r},${c}`;
     const wanted = preferred
       || (inCur.has(here) ? (cur.dir === 'A' ? 'D' : 'A') : cur.dir);
-    /* A cell may only belong to one direction — fall back rather than deselect. */
+    /* A cell may belong to only one direction — fall back rather than deselect. */
     const next = entryAt(r, c, wanted) || entryAt(r, c, wanted === 'A' ? 'D' : 'A');
     if (!next) return;
     cur = next;
@@ -127,7 +131,7 @@ export function start(root) {
     checked = false;
     /* Skip to the next gap in this entry, so filling around a stuck letter
        doesn't mean stepping over it by hand every time. */
-    let nextGap = cur.cells.findIndex(([y, x], i) => i > at && !fill[y][x]);
+    const nextGap = cur.cells.findIndex(([y, x], i) => i > at && !fill[y][x]);
     at = nextGap !== -1 ? nextGap : Math.min(at + 1, cur.cells.length - 1);
 
     if (solved()) {
@@ -151,19 +155,19 @@ export function start(root) {
     let [r, c] = cur.cells[at];
     /* Walk past blocks so the arrow keys cross the grid rather than stopping
        at the first gap. */
-    for (let i = 0; i < N; i++) {
+    for (let i = 0; i < Math.max(ROWS, COLS); i++) {
       r += dr; c += dc;
-      if (r < 0 || c < 0 || r >= N || c >= N) return;
+      if (r < 0 || c < 0 || r >= ROWS || c >= COLS) return;
       if (!isBlock(r, c)) { select(r, c, dir); return; }
     }
   }
 
   function drawGrid() {
     let html = '';
-    for (let r = 0; r < N; r++) {
-      for (let c = 0; c < N; c++) {
+    const [cr, cc] = cur.cells[at];
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
         if (isBlock(r, c)) { html += '<div class="xwBlock"></div>'; continue; }
-        const [cr, cc] = cur.cells[at];
         const cls = ['xwCell'];
         if (inCur.has(`${r},${c}`)) cls.push('xwLit');
         if (r === cr && c === cc) cls.push('xwCur');
@@ -175,7 +179,8 @@ export function start(root) {
           </button>`;
       }
     }
-    return `<div class="xwGrid">${html}</div>`;
+    /* The column count lives with the grid data, not the stylesheet. */
+    return `<div class="xwGrid" style="grid-template-columns:repeat(${COLS},1fr)">${html}</div>`;
   }
 
   function drawClues() {
@@ -230,10 +235,12 @@ export function start(root) {
     const act = e.target.closest('[data-act]')?.dataset.act;
     if (act === 'check') {
       checked = true;
-      const wrong = GRID.reduce((sum, row, r) =>
-        sum + [...row].filter((ch, c) => ch !== BLOCK && fill[r][c] && fill[r][c] !== ch).length, 0);
-      const blanks = GRID.reduce((sum, row, r) =>
-        sum + [...row].filter((ch, c) => ch !== BLOCK && !fill[r][c]).length, 0);
+      let wrong = 0, blanks = 0;
+      GRID.forEach((row, r) => [...row].forEach((ch, c) => {
+        if (ch === BLOCK) return;
+        if (!fill[r][c]) blanks++;
+        else if (fill[r][c] !== ch) wrong++;
+      }));
       message = wrong ? `${wrong} square${wrong === 1 ? '' : 's'} wrong.`
         : blanks ? `nothing wrong so far — ${blanks} still empty.`
           : 'all correct.';

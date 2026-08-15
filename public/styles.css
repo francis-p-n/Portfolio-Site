@@ -1645,9 +1645,9 @@
     .pzBtn:disabled { opacity: .4; cursor: default; filter: none }
 
     /* ── crossword ── */
+    /* The column count is set inline from the grid data, not here. */
     .xwGrid {
       display: grid;
-      grid-template-columns: repeat(9, 1fr);
       gap: 0;
       border: 2px solid var(--txt);
       border-radius: 3px;
@@ -1687,7 +1687,7 @@
 
     .xwLtr {
       font-family: var(--fontHd);
-      font-size: clamp(.7rem, 3.2vw, .95rem);
+      font-size: clamp(.58rem, 2.5vw, .85rem);
       font-weight: 700;
       color: var(--txt);
       line-height: 1
