@@ -1644,187 +1644,140 @@
     }
     .pzBtn:disabled { opacity: .4; cursor: default; filter: none }
 
-    /* ── sudoku ── */
-    .sGrid {
+    /* ── crossword ── */
+    .xwGrid {
       display: grid;
       grid-template-columns: repeat(9, 1fr);
+      gap: 0;
       border: 2px solid var(--txt);
-      border-radius: 4px;
+      border-radius: 3px;
       overflow: hidden;
-      background: var(--winBg)
+      background: var(--txt)
     }
 
-    .sCell {
+    .xwBlock {
+      aspect-ratio: 1;
+      background: var(--txt)
+    }
+
+    .xwCell {
+      position: relative;
       aspect-ratio: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: .5px solid color-mix(in srgb, var(--txt2) 35%, transparent);
-      background: var(--winBg);
-      font-family: var(--fontHd);
-      font-size: clamp(.7rem, 3.4vw, .95rem);
-      font-weight: 600;
-      color: var(--acc);
-      cursor: pointer;
       padding: 0;
+      border: .5px solid color-mix(in srgb, var(--txt2) 55%, transparent);
+      background: var(--winBg);
+      cursor: pointer;
       transition: background .12s
     }
 
-    /* The 3x3 boxes need a heavier rule than the cell grid */
-    .sEdgeR { border-right: 1.5px solid var(--txt) }
-    .sEdgeB { border-bottom: 1.5px solid var(--txt) }
-
-    .sGiven { color: var(--txt); font-weight: 800; cursor: default }
-    .sSame { background: color-mix(in srgb, var(--acc) 13%, var(--winBg)) }
-    .sSel { background: color-mix(in srgb, var(--acc) 30%, var(--winBg)) }
-    .sBad { background: color-mix(in srgb, #e5484d 26%, var(--winBg)); color: #c62a2f }
-
-    .sPad {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 5px
+    /* The number rides in the corner so it never fights the letter. */
+    .xwNum {
+      position: absolute;
+      top: 1px;
+      left: 2px;
+      font-family: var(--fontHd);
+      font-size: .42rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--txt2)
     }
 
-    .sKey {
-      padding: 9px 0;
-      border: 1.5px solid var(--line);
-      border-radius: var(--radSm);
-      background: color-mix(in srgb, var(--acc) 5%, var(--winBg));
+    .xwLtr {
       font-family: var(--fontHd);
-      font-size: .95rem;
+      font-size: clamp(.7rem, 3.2vw, .95rem);
       font-weight: 700;
       color: var(--txt);
-      cursor: pointer;
-      transition: background .15s, border-color .15s
+      line-height: 1
     }
 
-    .sKey:hover { border-color: var(--acc) }
-    .sKeyDone { opacity: .32 }
-    .sKeyDel { grid-column: span 1 }
+    /* The whole entry lights up, with the cursor square a shade stronger —
+       that pair is what tells you which direction you are typing in. */
+    .xwLit { background: color-mix(in srgb, var(--acc) 15%, var(--winBg)) }
+    .xwCur { background: color-mix(in srgb, var(--acc) 42%, var(--winBg)) }
+    .xwWrong .xwLtr { color: #c62a2f; text-decoration: line-through }
+    .xwDone { background: color-mix(in srgb, var(--acc) 20%, var(--winBg)) }
 
-    /* ── wordle ── */
-    .wGrid {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      align-items: center
+    .xwCurrent {
+      font-size: .78rem;
+      line-height: 1.5;
+      color: var(--txt2);
+      min-height: 2.4em
     }
 
-    .wRow { display: flex; gap: 5px }
-
-    .wTile {
-      width: 46px;
-      height: 46px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid var(--line);
-      border-radius: 4px;
+    .xwCurrent b {
+      color: var(--acc);
       font-family: var(--fontHd);
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: var(--txt);
-      text-transform: uppercase
-    }
-
-    .wFilled { border-color: var(--txt2) }
-
-    .w-correct { background: var(--acc); border-color: var(--acc); color: #fff }
-    .w-present { background: #b59f3b; border-color: #b59f3b; color: #fff }
-    .w-absent { background: color-mix(in srgb, var(--txt2) 45%, var(--winBg)); border-color: transparent; color: #fff }
-
-    .wKeys { display: flex; flex-direction: column; gap: 5px }
-    .wKeyRow { display: flex; gap: 4px; justify-content: center }
-
-    .wKey {
-      flex: 1;
-      min-width: 0;
-      padding: 11px 2px;
-      border: 1.5px solid var(--line);
-      border-radius: var(--radSm);
-      background: color-mix(in srgb, var(--acc) 5%, var(--winBg));
-      font-size: .72rem;
-      font-weight: 700;
-      color: var(--txt);
-      cursor: pointer;
-      text-transform: uppercase
-    }
-
-    .wKey:hover { border-color: var(--acc) }
-    .wKeyWide { flex: 1.6; font-size: .62rem }
-
-    /* ── connections ── */
-    .cnBands { display: flex; flex-direction: column; gap: 5px }
-
-    .cnBand {
-      padding: 8px 10px;
-      border-radius: var(--radSm);
-      text-align: center;
-      color: #3b2f10
-    }
-
-    .cnBand b {
-      display: block;
-      font-size: .76rem;
-      font-weight: 800;
+      margin-right: 5px;
       text-transform: lowercase
     }
 
-    .cnBand span { font-size: .68rem; font-weight: 600 }
+    .xwKeys { display: flex; flex-direction: column; gap: 4px }
+    .xwKeyRow { display: flex; gap: 3px; justify-content: center }
 
-    .cnA { background: #f3d16b }
-    .cnB { background: #a8c368 }
-    .cnC { background: #7cb0dd }
-    .cnD { background: #b98fd0 }
-
-    .cnGrid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 5px
-    }
-
-    .cnTile {
-      aspect-ratio: 1.35;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2px;
+    .xwKey {
+      flex: 1;
+      min-width: 0;
+      padding: 9px 2px;
       border: 1.5px solid var(--line);
       border-radius: var(--radSm);
-      background: color-mix(in srgb, var(--acc) 6%, var(--winBg));
-      font-size: clamp(.5rem, 2.3vw, .68rem);
-      font-weight: 800;
+      background: color-mix(in srgb, var(--acc) 5%, var(--winBg));
+      font-size: .7rem;
+      font-weight: 700;
       color: var(--txt);
-      cursor: pointer;
-      text-align: center;
-      overflow-wrap: anywhere;
-      line-height: 1.15;
-      transition: background .15s, border-color .15s
+      cursor: pointer
     }
 
-    .cnTile:hover { border-color: var(--acc) }
+    .xwKey:hover { border-color: var(--acc) }
+    .xwKeyWide { flex: 1.5 }
 
-    .cnPicked {
-      background: var(--txt);
-      border-color: var(--txt);
-      color: var(--winBg)
+    .xwClues {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 4px
     }
 
-    .cnLives {
+    .xwHd {
+      font-size: .63rem;
+      font-weight: 900;
+      letter-spacing: 1.4px;
+      color: var(--acc);
+      margin-bottom: 5px
+    }
+
+    .xwClues ol { list-style: none }
+
+    .xwClue {
       display: flex;
       gap: 6px;
-      justify-content: center
+      width: 100%;
+      text-align: left;
+      padding: 4px 3px;
+      border: none;
+      border-radius: 3px;
+      background: none;
+      font-family: var(--font);
+      font-size: .68rem;
+      line-height: 1.4;
+      color: var(--txt2);
+      cursor: pointer
     }
 
-    .cnLife {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: var(--txt2);
-      transition: background .2s, transform .2s
+    .xwClue b {
+      font-family: var(--fontHd);
+      color: var(--txt);
+      flex-shrink: 0
     }
 
-    .cnLost { background: color-mix(in srgb, var(--txt2) 22%, transparent); transform: scale(.8) }
+    .xwClue:hover { background: color-mix(in srgb, var(--acc) 9%, transparent) }
+
+    .xwClueOn {
+      background: color-mix(in srgb, var(--acc) 15%, transparent);
+      color: var(--txt)
+    }
 
     /* ── sticky mobile CTA ───────────────────────────────── */
     #mobileCta {

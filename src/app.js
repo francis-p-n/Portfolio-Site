@@ -789,10 +789,17 @@ window.tglAcc = tglAcc;
 window.pokeAvi = pokeAvi;
 window.mkWin = mkWin;
 window.openArticleWindow = openArticleWindow;
-/* The word "thoughts" in the articles window opens a puzzle at random. The
-   games are a separate chunk, fetched only once someone clicks it. */
-window.openPuzzle = () => import('./puzzles/index.js')
-  .then(m => m.openRandomPuzzle())
-  .catch(err => console.error('puzzle failed to load:', err));
+/* The word "thoughts" in the articles window opens the crossword. It is a
+   separate chunk, fetched only once someone clicks it. */
+window.openPuzzle = () => import('./crossword.js')
+  .then(m => {
+    const { id, title, icon, w, h } = m.meta;
+    /* mkWin replaces any window with this id, so clicking again restarts the
+       grid rather than stacking a second copy. */
+    mkWin(id, title, icon, w, h, 0, 0, '');
+    const root = document.getElementById('wb-' + id);
+    if (root) m.start(root);
+  })
+  .catch(err => console.error('crossword failed to load:', err));
 
 init();
