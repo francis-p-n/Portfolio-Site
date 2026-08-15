@@ -172,14 +172,23 @@ function board() {
       <text class="gW${lit ? ' gWOn' : ''}" x="${mx.toFixed(1)}" y="${my.toFixed(1)}">${e.w}</text>`;
   }).join('');
 
+  /* Only the endpoints carry a letter. Numbering every node added nothing to
+     play — the edge weights are the information — and 23 labels competing with
+     23 weights made the board harder to read than the puzzle warranted. The
+     index still rides in aria-label, since that is all a screen reader has to
+     tell two bare circles apart. */
   const dots = S.nodes.map(n => {
-    const role = n.i === S.start ? ' gStart' : n.i === S.end ? ' gEnd' : '';
+    const isStart = n.i === S.start, isEnd = n.i === S.end;
+    const role = isStart ? ' gStart' : isEnd ? ' gEnd' : '';
     const cls = role + (visited.has(n.i) ? ' gOn' : '') + (n.i === head && !S.reveal ? ' gHead' : '')
       + (canStep.has(n.i) ? ' gCan' : '');
-    const label = n.i === S.start ? 'S' : n.i === S.end ? 'E' : n.i;
-    return `<g class="gNode${cls}" onclick="pfTap(${n.i})" role="button" tabindex="0" aria-label="node ${label}">
-        <circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="13"/>
-        <text x="${n.x.toFixed(1)}" y="${n.y.toFixed(1)}">${label}</text>
+    const label = isStart ? 'S' : isEnd ? 'E' : '';
+    const name = isStart ? 'start' : isEnd ? 'goal' : `node ${n.i}`;
+    /* Unlabelled nodes shrink, so the two that are labelled read as the ends. */
+    const r = label ? 13 : 9.5;
+    return `<g class="gNode${cls}" onclick="pfTap(${n.i})" role="button" tabindex="0" aria-label="${name}">
+        <circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${r}"/>
+        ${label ? `<text x="${n.x.toFixed(1)}" y="${n.y.toFixed(1)}">${label}</text>` : ''}
       </g>`;
   }).join('');
 
