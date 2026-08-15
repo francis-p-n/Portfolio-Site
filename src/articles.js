@@ -71,7 +71,7 @@ export function renderArticlesHtml() {
   }
 
   return `<span class="sl">articles &amp; writing</span>
-    <p class="secNote">my latest posts and thoughts</p>
+    <p class="secNote">my latest posts and <button type="button" class="eggWord" onclick="openPuzzle()">thoughts</button></p>
     ${feature ? featureCard(feature) : ''}
     ${rest.length ? `<hr/><span class="sl">more writing</span><div class="artList">${rest.map(listRow).join('')}</div>` : ''}
     ${more}`;
