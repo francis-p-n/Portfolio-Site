@@ -324,6 +324,186 @@
       object-fit: cover
     }
 
+    /* The avatar is the easter-egg trigger; the pointer is the only hint. */
+    .avi {
+      cursor: pointer;
+      user-select: none
+    }
+
+    .aviPoke {
+      animation: aviWobble .3s ease
+    }
+
+    @keyframes aviWobble {
+      30% { transform: rotate(-9deg) scale(1.07) }
+      70% { transform: rotate(7deg) scale(1.05) }
+      100% { transform: none }
+    }
+
+    /* ── pathfinder (easter egg) ────────────────────────── */
+    .gWrap {
+      display: flex;
+      flex-direction: column;
+      gap: 11px
+    }
+
+    .gStats {
+      display: flex;
+      gap: 7px
+    }
+
+    .gStat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      padding: 7px 4px;
+      border: 1.5px solid var(--line);
+      border-radius: var(--radSm);
+      background: color-mix(in srgb, var(--acc) 4%, var(--winBg));
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .8px;
+      color: var(--txt2)
+    }
+
+    .gStat b {
+      font-family: var(--fontHd);
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--txt)
+    }
+
+    .gBoard {
+      width: 100%;
+      height: auto;
+      border: 1.5px solid var(--line);
+      border-radius: var(--rad);
+      background: color-mix(in srgb, var(--acc) 4%, var(--winBg));
+      touch-action: manipulation
+    }
+
+    .gEdge {
+      stroke: color-mix(in srgb, var(--txt2) 45%, transparent);
+      stroke-width: 1.5
+    }
+
+    .gEdgeOn {
+      stroke: var(--acc);
+      stroke-width: 3.5
+    }
+
+    /* The weight sits on a disc so the edge underneath doesn't run through it */
+    .gWDot {
+      fill: color-mix(in srgb, var(--acc) 4%, var(--winBg))
+    }
+
+    .gW {
+      font-family: var(--fontHd);
+      font-size: 10px;
+      font-weight: 700;
+      fill: var(--txt2);
+      text-anchor: middle;
+      dominant-baseline: central;
+      pointer-events: none
+    }
+
+    .gWOn {
+      fill: var(--acc)
+    }
+
+    .gNode {
+      cursor: pointer
+    }
+
+    .gNode circle {
+      fill: var(--winBg);
+      stroke: var(--txt2);
+      stroke-width: 1.5;
+      transition: fill .15s, stroke .15s
+    }
+
+    .gNode text {
+      font-family: var(--fontHd);
+      font-size: 11px;
+      font-weight: 700;
+      fill: var(--txt2);
+      text-anchor: middle;
+      dominant-baseline: central;
+      pointer-events: none
+    }
+
+    /* A node you can legally step to next */
+    .gCan circle {
+      stroke: var(--acc);
+      stroke-dasharray: 3 2.5
+    }
+
+    .gNode:hover circle {
+      fill: color-mix(in srgb, var(--acc) 22%, var(--winBg))
+    }
+
+    .gOn circle {
+      fill: color-mix(in srgb, var(--acc) 30%, var(--winBg));
+      stroke: var(--acc)
+    }
+
+    .gOn text {
+      fill: var(--txt)
+    }
+
+    .gHead circle {
+      stroke-width: 3
+    }
+
+    .gStart circle, .gEnd circle {
+      stroke: var(--acc);
+      stroke-width: 3
+    }
+
+    .gEnd circle {
+      stroke-dasharray: 5 3
+    }
+
+    .gStart text, .gEnd text {
+      fill: var(--acc);
+      font-weight: 800
+    }
+
+    .gMsg {
+      font-size: .78rem;
+      line-height: 1.55;
+      color: var(--txt2);
+      min-height: 2.4em
+    }
+
+    .gWin {
+      color: var(--acc);
+      font-weight: 700
+    }
+
+    .gWarn {
+      color: var(--txt);
+      font-weight: 600
+    }
+
+    .gBtns {
+      display: flex;
+      gap: 7px
+    }
+
+    .gBtn {
+      flex: 1;
+      text-align: center
+    }
+
+    .gBtn:disabled {
+      opacity: .4;
+      cursor: default;
+      filter: none
+    }
+
     .bioP {
       font-size: .83rem;
       line-height: 1.8;

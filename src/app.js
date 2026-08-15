@@ -178,6 +178,7 @@ const WIN_META = {
   links: { title: `links — ${CFG.name}`, desc: `Where to find ${CFG.name} online.` },
   faq: { title: `faq — ${CFG.name}`, desc: `Frequently asked questions about working with ${CFG.name}.` },
   contact: { title: `contact — ${CFG.name}`, desc: `Get in touch with ${CFG.name} by email.` },
+  game: { title: `pathfinder — ${CFG.name}`, desc: `A shortest-path puzzle hidden in ${CFG.name}'s portfolio.` },
 };
 const metaDescEl = document.querySelector('meta[name="description"]');
 function updateMeta(id) {
@@ -435,6 +436,26 @@ function closeLb(e) {
     document.getElementById('lb').classList.remove('open');
 }
 
+/* ── easter egg ─────────────────────────────────────── */
+/* Five pokes at the pen avatar in the about window opens the pathfinder game.
+   The count decays, so five deliberate taps find it and five idle clicks
+   spread over a browse don't. The game module is only fetched once someone
+   actually gets there. */
+let aviPokes = 0, aviDecay = null;
+function pokeAvi() {
+  const avi = document.querySelector('#wb-about .avi');
+  if (avi) {                              /* restart the wobble on every tap */
+    avi.classList.remove('aviPoke');
+    void avi.offsetWidth;
+    avi.classList.add('aviPoke');
+  }
+  clearTimeout(aviDecay);
+  aviDecay = setTimeout(() => { aviPokes = 0; }, 1400);
+  if (++aviPokes < 5) return;
+  aviPokes = 0;
+  import('./game.js').then(m => m.openGame()).catch(err => console.error('game failed to load:', err));
+}
+
 /* ── accordion ──────────────────────────────────────── */
 /* Long sections (career, skills, faq) collapse behind a header so a window
    opens as a scannable outline instead of a wall of text. Ids are minted
@@ -510,7 +531,7 @@ function bAbout() {
   const lng = (CFG.langs || []).map(l => `<span class="tag">${l}</span>`).join('');
   return `
     <div class="abHead">
-      <div class="avi">${avHtml()}</div>
+      <div class="avi" onclick="pokeAvi()">${avHtml()}</div>
       <div>
         <div class="bigN">${CFG.name}</div>
         ${CFG.nameKanji ? `<div class="abKanji">${CFG.nameKanji}</div>` : ''}
@@ -764,6 +785,7 @@ window.closeWin = closeWin;
 window.openLb = openLb;
 window.closeLb = closeLb;
 window.tglAcc = tglAcc;
+window.pokeAvi = pokeAvi;
 window.mkWin = mkWin;
 window.openArticleWindow = openArticleWindow;
 

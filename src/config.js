@@ -64,7 +64,7 @@ export const CFG = {
     },
     {
       title: "WeBoosta",
-      img: "", stack: "Next.js · FastAPI · LangGraph · Gemini · Supabase",
+      img: "images/weboosta.webp", stack: "Next.js · FastAPI · LangGraph · Gemini · Supabase",
       desc: "An AI-search optimisation platform for hotels, built with Shariq Nauman for UMHackathon 2026. Multi-agent workflows simulate how AI travel agents evaluate a property, then generate machine-readable content so the hotel stays discoverable.",
       url: "https://github.com/ShariqNauman/aeo-optimizer", btn: "view source",
     },
