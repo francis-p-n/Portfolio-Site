@@ -1,3 +1,8 @@
 .git
-.vscode
 .github
+.vscode
+.claude
+node_modules
+dist
+assets-originals
+*.md
