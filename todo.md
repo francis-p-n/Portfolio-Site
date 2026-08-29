@@ -18,10 +18,10 @@ Checked items are verifiable in the repo. Anything not checked is not built yet.
 - [x] **Pathfinder easter egg** — random weighted graph, Dijkstra-scored, streak tracked.
 - [x] **Crossword easter egg** — hand-built grid, check / reveal word / reveal all.
 - [x] **Docker image** — two-stage build, nginx serves `dist/`.
-- [x] **CI** — `.github/workflows/build.yml` runs `npm ci && npm run build` on every push and PR.
 
 ## Next
 
+- [ ] **CI** — `.github/workflows/build.yml` is written but not committed; pushing it needs a token with `workflow` scope (`gh auth refresh -h github.com -s workflow`). The Jekyll deploy it replaces still runs on every push to main and builds the wrong thing.
 - [ ] **Swipe gestures** — pointer drag works on touch, but there is no flick-to-dismiss or pinch-to-resize.
 - [ ] **Résumé download** — a PDF in the links window; recruiters look for it first and it is not there.
 - [ ] **Deep links** — `?window=projects` so a shared URL opens on the right window.
