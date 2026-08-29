@@ -1,48 +1,73 @@
 # Agent Context: Portfolio OS
 
-Welcome! This file serves as the core developer handbook and context file for any AI agent onboarding into Francis's Portfolio OS repository.
+Developer handbook for this repository. Read this before changing anything.
 
 ---
 
-## 🎯 Project Overview & Mission
-Francis's Portfolio OS is a web-based portfolio resembling a classic desktop OS. Visitors can interact with applications (like reading blog articles, browsing projects, and adjusting themes) inside draggable, windowed interfaces. The site serves as a developer showcase and technical blog.
+## What this is
+
+A personal portfolio and blog that presents itself as a desktop OS. Every section
+— about, articles, projects, links, faq, contact — is a draggable, snappable
+window on a wallpaper, with a dock along the bottom. It is a static site: there
+is no backend, no database, and nothing is fetched at runtime except the icon
+SVGs and the markdown parser.
 
 ---
 
-## 🛠️ Technology Stack
-- **Frontend Core:** Vanilla HTML5, CSS3, ES6 JavaScript.
-- **Bundler / Build System:** Vite (`package.json`).
-- **Content:** Static ES modules — site copy in `src/config.js`, articles in `src/articles-data.js`. There is no backend.
-- **Client Libraries:**
-  - `marked` (Markdown parsing, lazily imported)
-- **Containerization:** Docker (`Dockerfile`, Nginx server).
+## Stack
+
+- Vanilla HTML5, CSS3 and ES2022 modules. No framework.
+- Vite for the dev server and the production bundle.
+- `marked` for markdown, dynamically imported the first time an article is opened.
+- Deployed to Vercel. `Dockerfile` builds the same `dist/` and serves it from nginx.
 
 ---
 
-## 📁 Key Files & Directories
-- [index.html](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/index.html): Main application shell and UI layout.
-- [package.json](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/package.json): Node project manifest and dependencies.
-- `src/config.js`: All site copy — bio, skills, projects, career, faq.
-- `src/articles-data.js`: Article content as markdown; add a post by appending to the array.
-- [Dockerfile](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/Dockerfile): Static distribution server setup.
-- [architecture.md](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/architecture.md): Visual diagrams and data flows.
-- [todo.md](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/todo.md): Active issues, roadmap backlog, and completed items list.
+## Layout
+
+```
+index.html            page shell — loader, wallpaper, lightbox, footer
+public/styles.css     the entire stylesheet
+src/app.js            PortfolioOS: boots everything and wires the action bus
+src/windows.js        PAGES — the one list every window, dock button and home shortcut derives from
+src/views.js          pure functions returning the HTML for each window body
+src/config.js         all site copy: bio, skills, projects, career, faq, links, colours
+src/articles-data.js  articles as markdown; exports PUBLISHED (drafts filtered, newest first)
+src/articles.js       article list rendering and the article reader window
+src/game.js           pathfinder easter egg (Graph / Puzzle / Pathfinder), lazily imported
+src/crossword.js      theology crossword easter egg (Crossword), lazily imported
+src/ui/               window-manager, dock, actions, icons, theme, sound, accordion, carousel, lightbox
+src/util/html.js      escaping and date formatting
+```
 
 ---
 
-## ⚡ Active Context
-- **Current Development Focus:** Mobile touch gestures and interactive/custom workspace features.
-- **Pending Tasks:** Implement swipe/touch gesture recognition for window dragging/resizing; write the two drafted articles in `src/articles-data.js`.
+## Conventions
+
+- **No inline handlers.** Interactive elements carry `data-act="namespace:verb"`;
+  `ActionBus` delegates from `document` to a handler registered in `PortfolioOS.wireActions`.
+- **No globals.** Nothing is hung off `window`.
+- **One source of truth per concept.** Adding a window means adding one entry to
+  `PAGES` in `src/windows.js` — the dock button, home shortcut, tab title and
+  meta description all follow from it.
+- **Content lives in `src/config.js` and `src/articles-data.js`**, never in the views.
+- **Easter eggs stay lazy.** `game.js` and `crossword.js` are dynamic imports and
+  must not be referenced statically, or they land in the main bundle.
 
 ---
 
-## 📜 Changelog / Recent Edits
+## Easter eggs
 
-### [2026-06-15]
-- **Refactored:** Desktop dashboard inline styles in [index.html](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/index.html) to clean CSS classes with mobile media query adjustments.
-- **Implemented:** Viewport-constrained window dimensions (`safeW`/`safeH`) and viewport centering logic to prevent window overflow on small screens.
-- **Updated:** Synchronized project docs ([README.md](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/README.md), [architecture.md](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/architecture.md), [todo.md](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/todo.md), and [agent.md](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/agent.md)) using the `/autodocumentation` skill.
-- **Added:** Initial [architecture.md](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/architecture.md) documentation outlining system components, database schemas, and data flow.
-- **Added:** Initial [todo.md](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/todo.md) backlog tracking feature roadmap, responsive work, and DevOps goals.
-- **Added:** Central [agent.md](file:///c:/Users/MSI/Desktop/Projects/Portfolio%20Website/agent.md) context file for onboarding agents.
-- **Created:** Global `autodocumentation` skill in the Antigravity system configuration to automate repo-wide documentation updates.
+- Five pokes at the pen avatar in the about window opens **pathfinder**: a random
+  weighted graph where you click from S to E and try to match Dijkstra.
+- The word "thoughts" in the articles window opens the **crossword**.
+
+---
+
+## Commands
+
+```
+npm run dev       vite dev server on :5173
+npm run build     production bundle into dist/
+npm run preview   serve the built bundle
+```

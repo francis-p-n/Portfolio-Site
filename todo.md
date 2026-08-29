@@ -1,30 +1,35 @@
-# Portfolio OS Roadmap & Backlog
+# Portfolio OS — Roadmap
 
-This checklist tracks the completed work, active focus, and future features for Francis's Portfolio OS.
+Checked items are verifiable in the repo. Anything not checked is not built yet.
 
 ---
 
-## Active & Core Features
-- [x] **Desktop OS Workspace:** Core window manager, draggable windows, desktop shortcuts, taskbar.
-- [x] **Static Article Content:** Posts authored as markdown in `src/articles-data.js`, rendered without a database.
-- [x] **Markdown Engine:** On-the-fly parsing with `marked`, lazily imported when a post is opened.
-- [x] **Docker Deployment:** Dockerfile container setup with Alpine Nginx.
+## Done
 
-## Planned Enhancements
+- [x] **Window manager** — draggable, resizable, focusable windows with a dock.
+- [x] **Edge snapping** — drag to the top edge to maximise, to a side for a half-screen split, double-click the title bar to toggle.
+- [x] **Touch support** — drag and resize run on pointer events, so mouse and touch share one path.
+- [x] **Window registry** — every window, dock button and home shortcut derives from `PAGES` in `src/windows.js`.
+- [x] **Delegated events** — one `ActionBus` on `document`; no inline handlers and no `window.*` globals.
+- [x] **Static articles** — markdown in `src/articles-data.js`, parsed by `marked` on first open.
+- [x] **Code splitting** — `marked` and both easter eggs are dynamic imports.
+- [x] **Dark mode** — CSS custom properties, choice persisted to `localStorage`.
+- [x] **Hand-drawn icon set** — SVGs upgraded in place over an emoji fallback.
+- [x] **Pathfinder easter egg** — random weighted graph, Dijkstra-scored, streak tracked.
+- [x] **Crossword easter egg** — hand-built grid, check / reveal word / reveal all.
+- [x] **Docker image** — two-stage build, nginx serves `dist/`.
+- [x] **CI** — `.github/workflows/build.yml` runs `npm ci && npm run build` on every push and PR.
 
-### 📱 Responsiveness & UX
-- [/] **Mobile Optimization:**
-  - [x] Implement viewport-constrained window sizing and centering to fit small screens (`index.html`).
-  - [x] Refactor inline desktop dashboard/avatar/grid styles to clean CSS classes with media query adjustments.
-  - [ ] Implement swipe/touch guestures for window dragging/resizing.
-- [ ] **Custom Desktop Backgrounds:** Allow users to upload or select custom wallpaper themes (stored in localStorage).
-- [ ] **Window Snap System:** Implement simple window snapping to edges (split screen or maximize).
+## Next
 
-### 🛠️ Interactive Apps
-- [ ] **Terminal Simulator:** Add a functional CLI app where users can run basic terminal commands (e.g. `help`, `cat articles/`, `theme`, `clear`).
-- [ ] **Guestbook Widget:** A guestbook application (needs a backend — currently the site is fully static).
-- [ ] **System Settings App:** A dedicated configurations app for switching visual themes, cursor styles, and sound options.
+- [ ] **Swipe gestures** — pointer drag works on touch, but there is no flick-to-dismiss or pinch-to-resize.
+- [ ] **Résumé download** — a PDF in the links window; recruiters look for it first and it is not there.
+- [ ] **Deep links** — `?window=projects` so a shared URL opens on the right window.
+- [ ] **Finish the two drafts** — `preparation-execution` and `pentecost-a-modern-reality` in `src/articles-data.js` have descriptions but no body.
+- [ ] **Custom wallpapers** — pick or upload a background, stored in `localStorage`.
+- [ ] **Terminal app** — a small CLI window (`help`, `ls articles`, `theme`, `clear`).
+- [ ] **System settings app** — one window for theme, cursor and sound instead of the two top-left buttons.
 
-### 🚀 DevOps & CI/CD
-- [ ] **GitHub Actions Workflow:** Automate building the Docker image and pushing it to a registry on release tag creation.
-- [ ] **Vercel Deployments:** Validate bundling for static hosting.
+## Not planned
+
+- **Guestbook** — needs a backend; the site is deliberately static.
