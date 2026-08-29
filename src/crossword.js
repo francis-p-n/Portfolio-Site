@@ -1,11 +1,3 @@
-/* ── theology crossword ──────────────────────────────
-   Hand-built 11x9. Every maximal run of two or more white cells is a real
-   entry with a clue — there is no filler, and the grid is checked against
-   that promise at load rather than trusted.
-
-   Loaded lazily from the "thoughts" easter egg, so none of this ships in the
-   main bundle. */
-
 const GRID = [
   'COMMANDMENT',
   'A#O#N#I#A#E',
@@ -18,13 +10,6 @@ const GRID = [
   'LAMENT#####',
 ];
 
-const ROWS = GRID.length;
-const COLS = GRID[0].length;
-const BLOCK = '#';
-
-/* Keyed by "row,col,direction". Aimed at general knowledge rather than a
-   theology degree — the answers should be recognisable to anyone who has been
-   near a church or a Bible, and the clues point at the familiar story. */
 const CLUES = {
   '0,0,A': 'One of the ten Moses carried down the mountain',
   '4,6,A': 'Anger — one of the seven deadly sins',
@@ -41,11 +26,17 @@ const CLUES = {
   '0,10,D': 'Jesus overturned the money changers’ tables in this one',
 };
 
-const key = (r, c, d) => `${r},${c},${d}`;
-const isBlock = (r, c) => r < 0 || c < 0 || r >= ROWS || c >= COLS || GRID[r][c] === BLOCK;
+const ROWS = GRID.length;
+const COLS = GRID[0].length;
+const BLOCK = '#';
+const KEYS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+const WHITE = [...GRID.join('')].filter(ch => ch !== BLOCK).length;
+const LABELS = { check: 'check', word: 'reveal word', all: 'reveal all', clear: 'clear' };
+const ARM_MS = 4000;
 
-/* Standard crossword numbering: a cell is numbered when it opens an across or
-   a down entry, scanning left-to-right, top-to-bottom. */
+const isBlock = (r, c) => r < 0 || c < 0 || r >= ROWS || c >= COLS || GRID[r][c] === BLOCK;
+const dirName = d => (d === 'A' ? 'across' : 'down');
+
 function buildEntries() {
   const numbers = {};
   const entries = [];
@@ -54,19 +45,21 @@ function buildEntries() {
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       if (isBlock(r, c)) continue;
-      const startsA = isBlock(r, c - 1) && !isBlock(r, c + 1);
-      const startsD = isBlock(r - 1, c) && !isBlock(r + 1, c);
-      if (!startsA && !startsD) continue;
+      const startsAcross = isBlock(r, c - 1) && !isBlock(r, c + 1);
+      const startsDown = isBlock(r - 1, c) && !isBlock(r + 1, c);
+      if (!startsAcross && !startsDown) continue;
       numbers[`${r},${c}`] = ++n;
 
-      for (const [starts, dir, dr, dc] of [[startsA, 'A', 0, 1], [startsD, 'D', 1, 0]]) {
+      for (const [starts, dir, dr, dc] of [[startsAcross, 'A', 0, 1], [startsDown, 'D', 1, 0]]) {
         if (!starts) continue;
         const cells = [];
         for (let i = 0; !isBlock(r + dr * i, c + dc * i); i++) cells.push([r + dr * i, c + dc * i]);
         entries.push({
-          num: n, dir, r, c, cells,
+          num: n,
+          dir,
+          cells,
           answer: cells.map(([y, x]) => GRID[y][x]).join(''),
-          clue: CLUES[key(r, c, dir)] || '(no clue)',
+          clue: CLUES[`${r},${c},${dir}`] || '(no clue)',
         });
       }
     }
@@ -76,393 +69,407 @@ function buildEntries() {
 
 const { numbers: NUMBERS, entries: ENTRIES } = buildEntries();
 
-/* The grid and the clue list have to agree; a missing clue is a bug in the
-   data, not something to discover mid-solve. */
-ENTRIES.forEach(e => {
-  if (e.clue === '(no clue)') console.warn('crossword: no clue for', e.num + e.dir, e.answer);
+ENTRIES.forEach(entry => {
+  if (entry.clue === '(no clue)') console.warn('crossword: no clue for', entry.num + entry.dir, entry.answer);
 });
 
+export class Crossword {
+  static meta = {
+    id: 'crossword',
+    title: 'crossword',
+    icon: '✝️',
+    width: 470,
+    height: 700,
+    description: 'A hand-built theology crossword hidden in this portfolio.',
+  };
 
-const KEYS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
-const WHITE = [...GRID.join('')].filter(ch => ch !== BLOCK).length;
-const dirName = d => (d === 'A' ? 'across' : 'down');
-
-/* The two buttons that throw work away ask twice; the label is the prompt. */
-const LABELS = { check: 'check', word: 'reveal word', all: 'reveal all', clear: 'clear' };
-
-export const meta = { id: 'crossword', title: 'crossword', icon: '✝️', w: 470, h: 700 };
-
-export function start(root) {
-  /* One letter per white cell, empty until typed. */
-  const fill = GRID.map(row => [...row].map(ch => (ch === BLOCK ? null : '')));
-  let cur = ENTRIES[0];
-  let at = 0;                 /* index into cur.cells */
-  let checked = false;        /* wrong letters stay flagged until the next edit */
-  let done = false;
-  let armed = null;           /* a destructive button waiting for its second press */
-  let armTimer = 0;
-  let message = 'a theology crossword. click a square or a clue, then type.';
-
-  const inCur = new Set();
-
-  function refreshHighlight() {
-    inCur.clear();
-    cur.cells.forEach(([r, c]) => inCur.add(`${r},${c}`));
+  constructor(manager) {
+    this.manager = manager;
+    this.fill = GRID.map(row => [...row].map(ch => (ch === BLOCK ? null : '')));
+    this.current = ENTRIES[0];
+    this.at = 0;
+    this.checked = false;
+    this.done = false;
+    this.armed = null;
+    this.armTimer = 0;
+    this.message = 'a theology crossword. click a square or a clue, then type.';
   }
 
-  /* ── entry helpers ──────────────────────────────── */
-  const entryAt = (r, c, dir) => ENTRIES.find(e => e.dir === dir && e.cells.some(([y, x]) => y === r && x === c));
-  const isFull = e => e.cells.every(([y, x]) => fill[y][x]);
-  const firstGap = e => { const i = e.cells.findIndex(([y, x]) => !fill[y][x]); return i === -1 ? 0 : i; };
-  const solved = () => GRID.every((row, r) => [...row].every((ch, c) => ch === BLOCK || fill[r][c] === ch));
-
-  /* Landing on a clue should land on the first square you still have to think
-     about, not on a letter that is already sitting there. */
-  function goEntry(entry, index) {
-    cur = entry;
-    at = index === undefined ? firstGap(entry) : index;
-    disarm();
-    sync();
+  open() {
+    const win = this.manager.create({ ...Crossword.meta, html: this.shell() });
+    this.root = win.body;
+    this.collect();
+    this.bind();
+    this.sync();
   }
 
-  function step(delta) {
-    const i = ENTRIES.indexOf(cur);
-    goEntry(ENTRIES[(i + delta + ENTRIES.length) % ENTRIES.length]);
+  shell() {
+    return `
+    <div class="pzWrap">
+      <div class="xwTop">
+        <button type="button" class="xwNav" data-xw="prev" aria-label="previous clue">‹</button>
+        <p class="xwCurrent"><b data-role="pos"></b><span data-role="clue"></span></p>
+        <button type="button" class="xwNav" data-xw="next" aria-label="next clue">›</button>
+      </div>
+      ${this.gridHtml()}
+      <div class="xwProg">
+        <span class="xwTrack"><i class="xwFill" data-role="bar"></i></span>
+        <span class="xwCount" data-role="count"></span>
+      </div>
+      <p class="pzMsg" data-role="msg" role="status" aria-live="polite"></p>
+      <div class="xwKeys">${this.keysHtml()}</div>
+      <p class="xwHint">type to fill · <b>space</b> swaps across and down · <b>tab</b> jumps to the next clue</p>
+      <div class="pzBtns">
+        ${Object.keys(LABELS).map(act => `<button type="button" class="btnSm pzBtn" data-xw="${act}">${LABELS[act]}</button>`).join('')}
+      </div>
+      ${this.cluesHtml()}
+    </div>`;
   }
 
-  function nextUnfinished() {
-    const i = ENTRIES.indexOf(cur);
-    for (let k = 1; k <= ENTRIES.length; k++) {
-      const e = ENTRIES[(i + k) % ENTRIES.length];
-      if (!isFull(e)) return e;
-    }
-    return null;
-  }
-
-  function select(r, c, preferred) {
-    if (isBlock(r, c)) return;
-    const [cr, cc] = cur.cells[at];
-    /* Clicking the square you are already on flips across/down. Clicking any
-       other square in the same word just moves along it — flipping there is
-       the classic way to lose your place. */
-    const wanted = preferred
-      || (r === cr && c === cc ? (cur.dir === 'A' ? 'D' : 'A') : cur.dir);
-    /* A cell may belong to only one direction — fall back rather than deselect. */
-    const next = entryAt(r, c, wanted) || entryAt(r, c, wanted === 'A' ? 'D' : 'A');
-    if (!next) return;
-    cur = next;
-    at = cur.cells.findIndex(([y, x]) => y === r && x === c);
-    disarm();
-    sync();
-  }
-
-  /* ── typing ─────────────────────────────────────── */
-  function put(ch) {
-    if (done) return;
-    const [r, c] = cur.cells[at];
-    fill[r][c] = ch;
-    checked = false;
-    disarm();
-
-    if (solved()) {
-      done = true;
-      message = 'every square right. that is the whole grid.';
-      sync();
-      return;
-    }
-
-    /* Skip to the next gap in this entry, so filling around a stuck letter
-       doesn't mean stepping over it by hand every time. */
-    const after = cur.cells.findIndex(([y, x], i) => i > at && !fill[y][x]);
-    if (after !== -1) at = after;
-    else if (!isFull(cur)) at = firstGap(cur);
-    else {
-      /* Word finished — carry on at the next unsolved clue rather than
-         parking on its last square. */
-      const nxt = nextUnfinished();
-      if (nxt) { cur = nxt; at = firstGap(nxt); }
-    }
-    sync();
-  }
-
-  function back() {
-    if (done) return;
-    const [r, c] = cur.cells[at];
-    checked = false;
-    disarm();
-    if (fill[r][c]) fill[r][c] = '';
-    else if (at > 0) { at--; const [pr, pc] = cur.cells[at]; fill[pr][pc] = ''; }
-    else {
-      /* Nothing left to delete at the head of an entry — step back into the
-         previous clue instead of swallowing the key. */
-      const i = ENTRIES.indexOf(cur);
-      cur = ENTRIES[(i - 1 + ENTRIES.length) % ENTRIES.length];
-      at = cur.cells.length - 1;
-    }
-    sync();
-  }
-
-  function move(dr, dc) {
-    const dir = dc !== 0 ? 'A' : 'D';
-    let [r, c] = cur.cells[at];
-    /* Walk past blocks so the arrow keys cross the grid rather than stopping
-       at the first gap. */
-    for (let i = 0; i < Math.max(ROWS, COLS); i++) {
-      r += dr; c += dc;
-      if (r < 0 || c < 0 || r >= ROWS || c >= COLS) return;
-      if (!isBlock(r, c)) { select(r, c, dir); return; }
-    }
-  }
-
-  /* ── shell, built once ──────────────────────────── */
-  /* The grid, the clue list and the keyboard never change shape, so they are
-     rendered once and then updated in place. Rebuilding the subtree on every
-     keystroke — which is what this used to do — threw away the clue list's
-     scroll position and the keyboard focus along with it. */
-  function gridHtml() {
+  gridHtml() {
     let html = '';
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
-        if (isBlock(r, c)) { html += '<div class="xwBlock"></div>'; continue; }
+        if (isBlock(r, c)) {
+          html += '<div class="xwBlock"></div>';
+          continue;
+        }
         const n = NUMBERS[`${r},${c}`];
         html += `<button type="button" class="xwCell" data-r="${r}" data-c="${c}" tabindex="-1">
             ${n ? `<span class="xwNum">${n}</span>` : ''}<span class="xwLtr"></span>
           </button>`;
       }
     }
-    /* The column count lives with the grid data, not the stylesheet. */
     return `<div class="xwGrid" role="group" aria-label="crossword grid"
         style="grid-template-columns:repeat(${COLS},1fr)">${html}</div>`;
   }
 
-  function keysHtml() {
+  keysHtml() {
     return KEYS.map(row => `<div class="xwKeyRow">
         ${[...row].map(ch => `<button type="button" class="xwKey" data-key="${ch}">${ch}</button>`).join('')}
         ${row === 'ZXCVBNM' ? '<button type="button" class="xwKey xwKeyWide" data-key="BACK" aria-label="backspace">⌫</button>' : ''}
       </div>`).join('');
   }
 
-  function cluesHtml() {
-    const list = dir => ENTRIES.filter(e => e.dir === dir).map(e =>
+  cluesHtml() {
+    const column = dir => ENTRIES.filter(e => e.dir === dir).map(e =>
       `<li><button type="button" class="xwClue" data-num="${e.num}" data-dir="${e.dir}">
           <b>${e.num}</b><span>${e.clue}</span>
         </button></li>`).join('');
     return `<div class="xwClues">
-        <div><p class="xwHd">across</p><ol>${list('A')}</ol></div>
-        <div><p class="xwHd">down</p><ol>${list('D')}</ol></div>
+        <div><p class="xwHd">across</p><ol>${column('A')}</ol></div>
+        <div><p class="xwHd">down</p><ol>${column('D')}</ol></div>
       </div>`;
   }
 
-  /* The clue you are solving rides in a bar pinned to the top of the window,
-     with the two arrows that walk the clue list. Before this it sat under the
-     grid, which on a phone meant scrolling away from the squares to read it. */
-  root.innerHTML = `
-    <div class="pzWrap">
-      <div class="xwTop">
-        <button type="button" class="xwNav" data-act="prev" aria-label="previous clue">‹</button>
-        <p class="xwCurrent"><b data-role="pos"></b><span data-role="clue"></span></p>
-        <button type="button" class="xwNav" data-act="next" aria-label="next clue">›</button>
-      </div>
-      ${gridHtml()}
-      <div class="xwProg">
-        <span class="xwTrack"><i class="xwFill" data-role="bar"></i></span>
-        <span class="xwCount" data-role="count"></span>
-      </div>
-      <p class="pzMsg" data-role="msg" role="status" aria-live="polite"></p>
-      <div class="xwKeys">${keysHtml()}</div>
-      <p class="xwHint">type to fill · <b>space</b> swaps across and down · <b>tab</b> jumps to the next clue</p>
-      <div class="pzBtns">
-        <button type="button" class="btnSm pzBtn" data-act="check">check</button>
-        <button type="button" class="btnSm pzBtn" data-act="word">reveal word</button>
-        <button type="button" class="btnSm pzBtn" data-act="all">reveal all</button>
-        <button type="button" class="btnSm pzBtn" data-act="clear">clear</button>
-      </div>
-      ${cluesHtml()}
-    </div>`;
+  collect() {
+    const pick = sel => this.root.querySelector(sel);
+    this.posEl = pick('[data-role="pos"]');
+    this.clueEl = pick('[data-role="clue"]');
+    this.barEl = pick('[data-role="bar"]');
+    this.countEl = pick('[data-role="count"]');
+    this.msgEl = pick('[data-role="msg"]');
+    this.cells = [...this.root.querySelectorAll('.xwCell')].map(el => ({
+      el,
+      ltr: el.querySelector('.xwLtr'),
+      r: Number(el.dataset.r),
+      c: Number(el.dataset.c),
+    }));
+    this.clueBtns = [...this.root.querySelectorAll('.xwClue')].map(el => ({
+      el,
+      entry: ENTRIES.find(e => e.num === Number(el.dataset.num) && e.dir === el.dataset.dir),
+    }));
+    this.actBtns = new Map(Object.keys(LABELS).map(act => [act, this.root.querySelector(`[data-xw="${act}"]`)]));
+  }
 
-  const pick = sel => root.querySelector(sel);
-  const posEl = pick('[data-role="pos"]');
-  const clueEl = pick('[data-role="clue"]');
-  const barEl = pick('[data-role="bar"]');
-  const countEl = pick('[data-role="count"]');
-  const msgEl = pick('[data-role="msg"]');
-  const cells = [...root.querySelectorAll('.xwCell')].map(el => ({
-    el, ltr: el.querySelector('.xwLtr'), r: +el.dataset.r, c: +el.dataset.c,
-  }));
-  const clueBtns = [...root.querySelectorAll('.xwClue')].map(el => ({
-    el, entry: ENTRIES.find(e => e.num === +el.dataset.num && e.dir === el.dataset.dir),
-  }));
-  const actBtns = new Map(Object.keys(LABELS).map(a => [a, root.querySelector(`[data-act="${a}"]`)]));
+  bind() {
+    this.root.addEventListener('click', e => {
+      const square = e.target.closest('[data-r]');
+      if (square) {
+        this.select(Number(square.dataset.r), Number(square.dataset.c));
+        return;
+      }
+      const clue = e.target.closest('[data-num]');
+      if (clue) {
+        const hit = this.clueBtns.find(x => x.el === clue);
+        if (hit) this.goTo(hit.entry);
+        return;
+      }
+      const key = e.target.closest('[data-key]');
+      if (key) {
+        if (key.dataset.key === 'BACK') this.back();
+        else this.put(key.dataset.key);
+        return;
+      }
+      const act = e.target.closest('[data-xw]')?.dataset.xw;
+      if (act) this.run(act);
+    });
 
-  /* ── paint ──────────────────────────────────────── */
-  function sync() {
-    refreshHighlight();
-    const [cr, cc] = cur.cells[at];
+    this.onKey = e => this.handleKey(e);
+    document.addEventListener('keydown', this.onKey);
+  }
+
+  handleKey(e) {
+    if (!document.contains(this.root)) {
+      document.removeEventListener('keydown', this.onKey);
+      return;
+    }
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const win = this.root.closest('.win');
+    if (!win || win.classList.contains('hidden') || !win.classList.contains('focused')) return;
+
+    if (/^[a-zA-Z]$/.test(e.key)) this.put(e.key.toUpperCase());
+    else if (e.key === 'Backspace' || e.key === 'Delete') this.back();
+    else if (e.key === 'ArrowLeft') this.move(0, -1);
+    else if (e.key === 'ArrowRight') this.move(0, 1);
+    else if (e.key === 'ArrowUp') this.move(-1, 0);
+    else if (e.key === 'ArrowDown') this.move(1, 0);
+    else if (e.key === 'Tab' || e.key === 'Enter') this.step(e.shiftKey ? -1 : 1);
+    else if (e.key === ' ') {
+      const [r, c] = this.current.cells[this.at];
+      this.select(r, c, this.current.dir === 'A' ? 'D' : 'A');
+    } else return;
+
+    e.preventDefault();
+  }
+
+  entryAt(r, c, dir) {
+    return ENTRIES.find(e => e.dir === dir && e.cells.some(([y, x]) => y === r && x === c));
+  }
+
+  isFull(entry) {
+    return entry.cells.every(([y, x]) => this.fill[y][x]);
+  }
+
+  firstGap(entry) {
+    const i = entry.cells.findIndex(([y, x]) => !this.fill[y][x]);
+    return i === -1 ? 0 : i;
+  }
+
+  get solved() {
+    return GRID.every((row, r) => [...row].every((ch, c) => ch === BLOCK || this.fill[r][c] === ch));
+  }
+
+  nextUnfinished() {
+    const i = ENTRIES.indexOf(this.current);
+    for (let k = 1; k <= ENTRIES.length; k++) {
+      const entry = ENTRIES[(i + k) % ENTRIES.length];
+      if (!this.isFull(entry)) return entry;
+    }
+    return null;
+  }
+
+  goTo(entry, index) {
+    this.current = entry;
+    this.at = index === undefined ? this.firstGap(entry) : index;
+    this.disarm();
+    this.sync();
+  }
+
+  step(delta) {
+    const i = ENTRIES.indexOf(this.current);
+    this.goTo(ENTRIES[(i + delta + ENTRIES.length) % ENTRIES.length]);
+  }
+
+  select(r, c, preferred) {
+    if (isBlock(r, c)) return;
+    const [cr, cc] = this.current.cells[this.at];
+    const wanted = preferred
+      || (r === cr && c === cc ? (this.current.dir === 'A' ? 'D' : 'A') : this.current.dir);
+    const next = this.entryAt(r, c, wanted) || this.entryAt(r, c, wanted === 'A' ? 'D' : 'A');
+    if (!next) return;
+    this.current = next;
+    this.at = next.cells.findIndex(([y, x]) => y === r && x === c);
+    this.disarm();
+    this.sync();
+  }
+
+  move(dr, dc) {
+    const dir = dc !== 0 ? 'A' : 'D';
+    let [r, c] = this.current.cells[this.at];
+    for (let i = 0; i < Math.max(ROWS, COLS); i++) {
+      r += dr;
+      c += dc;
+      if (r < 0 || c < 0 || r >= ROWS || c >= COLS) return;
+      if (!isBlock(r, c)) {
+        this.select(r, c, dir);
+        return;
+      }
+    }
+  }
+
+  put(ch) {
+    if (this.done) return;
+    const [r, c] = this.current.cells[this.at];
+    this.fill[r][c] = ch;
+    this.checked = false;
+    this.disarm();
+
+    if (this.solved) {
+      this.done = true;
+      this.message = 'every square right. that is the whole grid.';
+      this.sync();
+      return;
+    }
+
+    const ahead = this.current.cells.findIndex(([y, x], i) => i > this.at && !this.fill[y][x]);
+    if (ahead !== -1) this.at = ahead;
+    else if (!this.isFull(this.current)) this.at = this.firstGap(this.current);
+    else {
+      const next = this.nextUnfinished();
+      if (next) {
+        this.current = next;
+        this.at = this.firstGap(next);
+      }
+    }
+    this.sync();
+  }
+
+  back() {
+    if (this.done) return;
+    const [r, c] = this.current.cells[this.at];
+    this.checked = false;
+    this.disarm();
+    if (this.fill[r][c]) this.fill[r][c] = '';
+    else if (this.at > 0) {
+      this.at--;
+      const [pr, pc] = this.current.cells[this.at];
+      this.fill[pr][pc] = '';
+    } else {
+      const i = ENTRIES.indexOf(this.current);
+      this.current = ENTRIES[(i - 1 + ENTRIES.length) % ENTRIES.length];
+      this.at = this.current.cells.length - 1;
+    }
+    this.sync();
+  }
+
+  eachWhite(fn) {
+    GRID.forEach((row, r) => [...row].forEach((ch, c) => {
+      if (ch !== BLOCK) fn(r, c, ch);
+    }));
+  }
+
+  disarm() {
+    if (!this.armed) return;
+    this.armed = null;
+    clearTimeout(this.armTimer);
+  }
+
+  arm(act) {
+    if (this.armed === act) {
+      this.disarm();
+      return true;
+    }
+    clearTimeout(this.armTimer);
+    this.armed = act;
+    this.armTimer = setTimeout(() => {
+      this.armed = null;
+      this.sync();
+    }, ARM_MS);
+    this.sync();
+    return false;
+  }
+
+  run(act) {
+    if (act === 'prev') this.step(-1);
+    else if (act === 'next') this.step(1);
+    else if (act === 'check') this.check();
+    else if (act === 'word') this.revealWord();
+    else if (act === 'all') this.revealAll();
+    else if (act === 'clear') this.clear();
+  }
+
+  check() {
+    this.checked = true;
+    let wrong = 0;
+    let blanks = 0;
+    this.eachWhite((r, c, ch) => {
+      if (!this.fill[r][c]) blanks++;
+      else if (this.fill[r][c] !== ch) wrong++;
+    });
+    this.message = wrong ? `${wrong} square${wrong === 1 ? '' : 's'} wrong — struck through in the grid.`
+      : blanks ? `nothing wrong so far — ${blanks} still empty.`
+        : 'all correct.';
+    this.sync();
+  }
+
+  revealWord() {
+    const label = `${this.current.num} ${dirName(this.current.dir)}`;
+    this.current.cells.forEach(([r, c]) => { this.fill[r][c] = GRID[r][c]; });
+    this.checked = false;
+    if (this.solved) {
+      this.done = true;
+      this.message = 'that fills the last of it.';
+      this.sync();
+      return;
+    }
+    this.message = `${label} filled in.`;
+    const next = this.nextUnfinished();
+    if (next) this.goTo(next);
+    else this.sync();
+  }
+
+  revealAll() {
+    if (!this.arm('all')) return;
+    this.eachWhite((r, c, ch) => { this.fill[r][c] = ch; });
+    this.checked = false;
+    this.done = true;
+    this.message = 'revealed — the whole grid.';
+    this.sync();
+  }
+
+  clear() {
+    if (!this.done && !this.arm('clear')) return;
+    this.eachWhite((r, c) => { this.fill[r][c] = ''; });
+    this.checked = false;
+    this.done = false;
+    this.current = ENTRIES[0];
+    this.at = 0;
+    this.message = 'cleared. click a square or a clue, then type.';
+    this.sync();
+  }
+
+  sync() {
+    const lit = new Set(this.current.cells.map(([r, c]) => `${r},${c}`));
+    const [cr, cc] = this.current.cells[this.at];
     let filled = 0;
 
-    for (const { el, ltr, r, c } of cells) {
-      const ch = fill[r][c];
+    for (const { el, ltr, r, c } of this.cells) {
+      const ch = this.fill[r][c];
       if (ch) filled++;
       if (ltr.textContent !== ch) ltr.textContent = ch;
       const here = r === cr && c === cc;
-      el.classList.toggle('xwLit', inCur.has(`${r},${c}`));
+      el.classList.toggle('xwLit', lit.has(`${r},${c}`));
       el.classList.toggle('xwCur', here);
-      el.classList.toggle('xwWrong', checked && !!ch && ch !== GRID[r][c]);
-      el.classList.toggle('xwDone', done);
-      /* One stop on the tab ring, so tabbing into the grid lands on the cursor
-         rather than walking all sixty squares. */
+      el.classList.toggle('xwWrong', this.checked && !!ch && ch !== GRID[r][c]);
+      el.classList.toggle('xwDone', this.done);
       el.tabIndex = here ? 0 : -1;
       el.setAttribute('aria-label', `row ${r + 1} column ${c + 1}, ${ch || 'empty'}`);
     }
 
-    posEl.textContent = `${cur.num} ${dirName(cur.dir)}`;
-    clueEl.textContent = cur.clue;
-    barEl.style.width = `${Math.round((filled / WHITE) * 100)}%`;
-    countEl.textContent = `${filled}/${WHITE}`;
-    msgEl.textContent = message;
-    msgEl.className = `pzMsg${done ? ' pzWin' : checked ? ' pzWarn' : ''}`;
+    this.posEl.textContent = `${this.current.num} ${dirName(this.current.dir)}`;
+    this.clueEl.textContent = this.current.clue;
+    this.barEl.style.width = `${Math.round((filled / WHITE) * 100)}%`;
+    this.countEl.textContent = `${filled}/${WHITE}`;
+    this.msgEl.textContent = this.message;
+    this.msgEl.className = `pzMsg${this.done ? ' pzWin' : this.checked ? ' pzWarn' : ''}`;
 
-    for (const { el, entry } of clueBtns) {
-      el.classList.toggle('xwClueOn', entry === cur);
-      el.classList.toggle('xwClueDone', isFull(entry));
+    for (const { el, entry } of this.clueBtns) {
+      el.classList.toggle('xwClueOn', entry === this.current);
+      el.classList.toggle('xwClueDone', this.isFull(entry));
     }
 
-    for (const [act, btn] of actBtns) {
-      btn.textContent = armed === act ? 'sure?'
-        : act === 'clear' && done ? 'start over' : LABELS[act];
-      btn.classList.toggle('pzArmed', armed === act);
-      /* Everything but clear is spent once the grid is finished; clear becomes
-         the way back in rather than greying out with the rest. */
-      btn.disabled = done && act !== 'clear';
+    for (const [act, btn] of this.actBtns) {
+      btn.textContent = this.armed === act ? 'sure?'
+        : act === 'clear' && this.done ? 'start over' : LABELS[act];
+      btn.classList.toggle('pzArmed', this.armed === act);
+      btn.disabled = this.done && act !== 'clear';
     }
 
-    /* Follow the cursor with focus, but only for someone already navigating by
-       keyboard — otherwise this would yank the window's scroll on every click. */
     const active = document.activeElement;
-    if (active && active.classList.contains('xwCell') && root.contains(active)) {
-      const target = cells.find(x => x.r === cr && x.c === cc);
+    if (active && active.classList.contains('xwCell') && this.root.contains(active)) {
+      const target = this.cells.find(x => x.r === cr && x.c === cc);
       if (target && target.el !== active) target.el.focus({ preventScroll: true });
     }
   }
-
-  /* ── the second-press guard ─────────────────────── */
-  function disarm() {
-    if (!armed) return;
-    armed = null;
-    clearTimeout(armTimer);
-  }
-
-  function arm(act) {
-    if (armed === act) { disarm(); return true; }
-    clearTimeout(armTimer);
-    armed = act;
-    armTimer = setTimeout(() => { armed = null; sync(); }, 4000);
-    sync();
-    return false;
-  }
-
-  /* ── actions ────────────────────────────────────── */
-  const eachWhite = fn => GRID.forEach((row, r) => [...row].forEach((ch, c) => { if (ch !== BLOCK) fn(r, c, ch); }));
-
-  const ACTIONS = {
-    prev: () => step(-1),
-    next: () => step(1),
-
-    check() {
-      checked = true;
-      let wrong = 0, blanks = 0;
-      eachWhite((r, c, ch) => {
-        if (!fill[r][c]) blanks++;
-        else if (fill[r][c] !== ch) wrong++;
-      });
-      message = wrong ? `${wrong} square${wrong === 1 ? '' : 's'} wrong — struck through in the grid.`
-        : blanks ? `nothing wrong so far — ${blanks} still empty.`
-          : 'all correct.';
-      sync();
-    },
-
-    /* A whole grid was the only hint on offer, which is no hint at all. One
-       word is the size of help people actually want. */
-    word() {
-      const label = `${cur.num} ${dirName(cur.dir)}`;
-      cur.cells.forEach(([r, c]) => { fill[r][c] = GRID[r][c]; });
-      checked = false;
-      if (solved()) {
-        done = true;
-        message = 'that fills the last of it.';
-      } else {
-        message = `${label} filled in.`;
-        const nxt = nextUnfinished();
-        if (nxt) { cur = nxt; at = firstGap(nxt); }
-      }
-      sync();
-    },
-
-    all() {
-      if (!arm('all')) return;
-      eachWhite((r, c, ch) => { fill[r][c] = ch; });
-      checked = false;
-      done = true;
-      message = 'revealed — the whole grid.';
-      sync();
-    },
-
-    clear() {
-      /* A finished grid has nothing left to lose, so no second press there. */
-      if (!done && !arm('clear')) return;
-      eachWhite((r, c) => { fill[r][c] = ''; });
-      checked = false;
-      done = false;
-      cur = ENTRIES[0];
-      at = 0;
-      message = 'cleared. click a square or a clue, then type.';
-      sync();
-    },
-  };
-
-  /* Delegated and bound once — sync() only ever edits what changed. */
-  root.addEventListener('click', e => {
-    const sq = e.target.closest('[data-r]');
-    if (sq) { select(+sq.dataset.r, +sq.dataset.c); return; }
-
-    const clue = e.target.closest('[data-num]');
-    if (clue) {
-      const hit = clueBtns.find(x => x.el === clue);
-      if (hit) goEntry(hit.entry);
-      return;
-    }
-
-    const k = e.target.closest('[data-key]');
-    if (k) { k.dataset.key === 'BACK' ? back() : put(k.dataset.key); return; }
-
-    const act = e.target.closest('[data-act]')?.dataset.act;
-    if (ACTIONS[act]) ACTIONS[act]();
-  });
-
-  /* Physical keyboard, but only while this window is the focused one. Reopening
-     the puzzle builds a fresh grid, so the old listener retires itself once its
-     root is off the page. */
-  function onKey(e) {
-    if (!document.contains(root)) { document.removeEventListener('keydown', onKey); return; }
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-    const win = root.closest('.win');
-    if (!win || win.classList.contains('hidden') || !win.classList.contains('focused')) return;
-
-    if (/^[a-zA-Z]$/.test(e.key)) { put(e.key.toUpperCase()); e.preventDefault(); }
-    else if (e.key === 'Backspace' || e.key === 'Delete') { back(); e.preventDefault(); }
-    else if (e.key === 'ArrowLeft') { move(0, -1); e.preventDefault(); }
-    else if (e.key === 'ArrowRight') { move(0, 1); e.preventDefault(); }
-    else if (e.key === 'ArrowUp') { move(-1, 0); e.preventDefault(); }
-    else if (e.key === 'ArrowDown') { move(1, 0); e.preventDefault(); }
-    else if (e.key === 'Tab' || e.key === 'Enter') { step(e.shiftKey ? -1 : 1); e.preventDefault(); }
-    else if (e.key === ' ') {
-      /* The classic way to flip between across and down. */
-      const [r, c] = cur.cells[at];
-      select(r, c, cur.dir === 'A' ? 'D' : 'A');
-      e.preventDefault();
-    }
-  }
-  document.addEventListener('keydown', onKey);
-
-  sync();
 }

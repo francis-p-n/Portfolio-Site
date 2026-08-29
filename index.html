@@ -52,8 +52,8 @@
 
   <!-- Controls strictly packed into a flex container for the top-left -->
   <div class="topCtrl">
-    <button class="topBtn" id="sfxBtn"><span data-icon="sfx-on">🔊</span></button>
-    <button class="topBtn" id="themeBtn"><span data-icon="theme-dark">🌙</span></button>
+    <button class="topBtn" id="sfxBtn" data-act="sfx:toggle" aria-label="toggle sound" aria-pressed="true"><span data-icon="sfx-on">🔊</span></button>
+    <button class="topBtn" id="themeBtn" data-act="theme:toggle" aria-label="toggle dark mode"><span data-icon="theme-dark">🌙</span></button>
   </div>
 
   <div id="desk">
@@ -72,8 +72,8 @@
     </div>
   </div>
 
-  <div id="lb" onclick="closeLb(event)">
-    <button id="lbX" onclick="closeLb()">✕</button>
+  <div id="lb">
+    <button id="lbX" aria-label="close image">✕</button>
     <img id="lbImg" src="" alt="" />
   </div>
 

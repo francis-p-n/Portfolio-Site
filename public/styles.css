@@ -951,12 +951,14 @@
       transform: rotate(45deg)
     }
 
-    /* Collapsed by default; tglAcc() animates the pixel height so a long
-       answer is never clipped the way a guessed max-height would be */
     .accBody {
       height: 0;
       overflow: hidden;
       transition: height .28s ease
+    }
+
+    .acc.open>.accBody {
+      height: auto
     }
 
     .accPad {

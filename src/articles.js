@@ -1,57 +1,36 @@
-/* Articles are static content now — the list renders synchronously from
-   articles-data.js. Only the markdown parser is lazy, and only because
-   nothing needs it until a post is actually opened. */
 import { PUBLISHED } from './articles-data.js';
 import { CFG } from './config.js';
+import { escapeHtml, formatDate } from './util/html.js';
 
 let markedPromise = null;
+
 function loadMarked() {
   if (!markedPromise) markedPromise = import('marked').then(m => m.marked);
   return markedPromise;
 }
 
-/* Titles and descriptions are authored in this repo, but they still land in
-   attributes and innerHTML — escaping keeps a stray quote from breaking out. */
-function escapeHtml(str) {
-  if (str == null) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+function metaLine(article) {
+  return [formatDate(article.date), article.tags?.[0]].filter(Boolean).map(escapeHtml).join(' · ');
 }
 
-function fmtDate(iso, long = false) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(+d)) return '';
-  return d.toLocaleDateString(undefined,
-    long ? { year: 'numeric', month: 'short', day: 'numeric' } : { year: 'numeric', month: 'short' });
-}
-
-function metaLine(a) {
-  return [fmtDate(a.date), a.tags?.[0]].filter(Boolean).map(escapeHtml).join(' · ');
-}
-
-function featureCard(a) {
-  const meta = metaLine(a);
-  return `<article class="artFeat" onclick="openArticleWindow('${escapeHtml(a.id)}')" tabindex="0">
-      ${a.img ? `<div class="pImg"><img src="${escapeHtml(a.img)}" alt="${escapeHtml(a.title)}"/></div>` : ''}
+function featureCard(article) {
+  const meta = metaLine(article);
+  return `<article class="artFeat" data-act="article:open" data-article="${escapeHtml(article.id)}" tabindex="0" role="button">
+      ${article.img ? `<div class="pImg"><img src="${escapeHtml(article.img)}" alt="${escapeHtml(article.title)}"/></div>` : ''}
       ${meta ? `<p class="artMeta">${meta}</p>` : ''}
-      <p class="artFeatTit">${escapeHtml(a.title)}</p>
-      <p class="pDsc">${escapeHtml(a.description)}</p>
+      <p class="artFeatTit">${escapeHtml(article.title)}</p>
+      <p class="pDsc">${escapeHtml(article.description)}</p>
       <span class="artGo">read article <span class="artArrow">→</span></span>
     </article>`;
 }
 
-function listRow(a) {
-  const meta = metaLine(a);
-  return `<article class="artRow" onclick="openArticleWindow('${escapeHtml(a.id)}')" tabindex="0">
+function listRow(article) {
+  const meta = metaLine(article);
+  return `<article class="artRow" data-act="article:open" data-article="${escapeHtml(article.id)}" tabindex="0" role="button">
       <div>
         ${meta ? `<p class="artMeta">${meta}</p>` : ''}
-        <p class="artRowTit">${escapeHtml(a.title)}</p>
-        <p class="pDsc artRowDsc">${escapeHtml(a.description)}</p>
+        <p class="artRowTit">${escapeHtml(article.title)}</p>
+        <p class="pDsc artRowDsc">${escapeHtml(article.description)}</p>
       </div>
       <span class="artArrow">→</span>
     </article>`;
@@ -62,7 +41,7 @@ export function renderArticlesHtml() {
   const rest = PUBLISHED.filter(a => a !== feature);
 
   const more = CFG.substackUrl
-    ? `<a class="artMore" href="${CFG.substackUrl}" target="_blank" rel="noopener">everything else on substack →</a>`
+    ? `<a class="artMore" href="${escapeHtml(CFG.substackUrl)}" target="_blank" rel="noopener">everything else on substack →</a>`
     : '';
 
   if (!PUBLISHED.length) {
@@ -71,34 +50,41 @@ export function renderArticlesHtml() {
   }
 
   return `<span class="sl">articles &amp; writing</span>
-    <p class="secNote">my latest posts and <button type="button" class="eggWord" onclick="openPuzzle()">thoughts</button></p>
-    ${feature ? featureCard(feature) : ''}
+    <p class="secNote">my latest posts and <button type="button" class="eggWord" data-act="puzzle:open">thoughts</button></p>
+    ${featureCard(feature)}
     ${rest.length ? `<hr/><span class="sl">more writing</span><div class="artList">${rest.map(listRow).join('')}</div>` : ''}
     ${more}`;
 }
 
-export async function openArticleWindow(id) {
-  const a = PUBLISHED.find(p => p.id === id);
-  if (!a) return;
+export async function openArticleWindow(manager, id) {
+  const article = PUBLISHED.find(a => a.id === id);
+  if (!article) return;
 
   const marked = await loadMarked();
-  const bodyHtml = await marked.parse(a.body || '');
+  const body = await marked.parse(article.body || '');
+  const tagRow = (article.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
 
-  const tags = (a.tags || [])
-    .map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
-
-  window.mkWin('art-' + a.id, escapeHtml(a.title), '📄', 700, 550, 0, 0, `
+  manager.create({
+    id: `art-${article.id}`,
+    title: escapeHtml(article.title),
+    icon: '📄',
+    width: 700,
+    height: 550,
+    tabTitle: `${article.title} — ${CFG.name}`,
+    description: article.description,
+    html: `
     <div class="artPage">
-      <h1 class="artPageTit">${escapeHtml(a.title)}</h1>
-      <p class="artPageSub">${escapeHtml(a.description)}</p>
+      <h1 class="artPageTit">${escapeHtml(article.title)}</h1>
+      <p class="artPageSub">${escapeHtml(article.description)}</p>
       <div class="artByline">
         <span class="artAvatar">${CFG.avatarEmoji || '🖊️'}</span>
         <div>
           <div class="artByName">${escapeHtml(CFG.name)}</div>
-          <div class="artByDate">${fmtDate(a.date, true)}</div>
+          <div class="artByDate">${formatDate(article.date, true)}</div>
         </div>
       </div>
-      <div class="mdBody">${bodyHtml}</div>
-      ${tags ? `<div class="tagRow artPageTags">${tags}</div>` : ''}
-    </div>`);
+      <div class="mdBody">${body}</div>
+      ${tagRow ? `<div class="tagRow artPageTags">${tagRow}</div>` : ''}
+    </div>`,
+  });
 }
