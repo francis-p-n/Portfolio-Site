@@ -22,6 +22,9 @@
       --line: color-mix(in srgb, var(--border) 26%, transparent);
       --rad: 12px;     /* For the bottom window radius */
       --radSm: 6px;
+      /* Wrong-answer red. Dark mode needs a lighter one — the light-mode red
+         is all but invisible against a near-black square. */
+      --bad: #c62a2f;
       --titleH: 42px;  /* Taller title bar like sharyap */
       
       /* Detailed comment: Sharyap uses sans-serif for reading text, and monospace for top window bars */
@@ -47,6 +50,7 @@
       --txt2: #9aaa90;
       --border: #ffffff;
       --taskbar: #121212;
+      --bad: #ff8f8f;
     }
 
     /* ── controls ── */
@@ -1644,7 +1648,68 @@
     }
     .pzBtn:disabled { opacity: .4; cursor: default; filter: none }
 
+    /* Clear and reveal-all ask twice; the armed button says so in its own
+       label, and goes red so the second press is a deliberate one. */
+    .pzArmed {
+      background: #c62a2f;
+      box-shadow: 0 0 0 2px color-mix(in srgb, #c62a2f 30%, transparent)
+    }
+
     /* ── crossword ── */
+    /* Narrow windows get one clue column instead of two. The window is not the
+       viewport, so this has to be a container query, not a media query. */
+    .pzWrap { container-type: inline-size }
+
+    /* The clue you are solving, pinned to the top of the window body. The
+       negative margins cancel the body's padding so the bar goes edge to edge. */
+    .xwTop {
+      position: sticky;
+      top: -16px;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: -16px -16px 0;
+      padding: 10px 12px;
+      background: color-mix(in srgb, var(--acc) 8%, var(--winBg));
+      border-bottom: 1px solid var(--line)
+    }
+
+    .xwNav {
+      flex: none;
+      width: 30px;
+      height: 30px;
+      border: 1.5px solid var(--line);
+      border-radius: var(--radSm);
+      background: var(--winBg);
+      color: var(--txt);
+      font-family: var(--fontHd);
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      transition: border-color .15s, background .15s
+    }
+
+    .xwNav:hover { border-color: var(--acc) }
+    .xwNav:active { background: color-mix(in srgb, var(--acc) 18%, var(--winBg)) }
+
+    .xwCurrent {
+      flex: 1;
+      min-width: 0;
+      font-size: .76rem;
+      line-height: 1.45;
+      color: var(--txt)
+    }
+
+    .xwCurrent b {
+      display: block;
+      color: var(--acc);
+      font-family: var(--fontHd);
+      font-size: .64rem;
+      letter-spacing: .6px;
+      text-transform: lowercase
+    }
+
     /* The column count is set inline from the grid data, not here. */
     .xwGrid {
       display: grid;
@@ -1679,7 +1744,7 @@
       top: 1px;
       left: 2px;
       font-family: var(--fontHd);
-      font-size: .42rem;
+      font-size: .5rem;
       font-weight: 700;
       line-height: 1;
       color: var(--txt2)
@@ -1687,57 +1752,122 @@
 
     .xwLtr {
       font-family: var(--fontHd);
-      font-size: clamp(.58rem, 2.5vw, .85rem);
+      font-size: clamp(.62rem, 2.6vw, .9rem);
       font-weight: 700;
       color: var(--txt);
       line-height: 1
     }
 
-    /* The whole entry lights up, with the cursor square a shade stronger —
-       that pair is what tells you which direction you are typing in. */
-    .xwLit { background: color-mix(in srgb, var(--acc) 15%, var(--winBg)) }
-    .xwCur { background: color-mix(in srgb, var(--acc) 42%, var(--winBg)) }
-    .xwWrong .xwLtr { color: #c62a2f; text-decoration: line-through }
+    /* Empty squares answer the pointer before you commit to one. */
+    .xwCell:not(.xwLit):hover { background: color-mix(in srgb, var(--acc) 9%, var(--winBg)) }
+
+    /* The whole entry lights up, with the cursor square a shade stronger and
+       ringed — that pair is what tells you which direction you are typing in.
+       The ring carries the cursor even when a wrong-letter tint takes the
+       background off it, and survives dark mode where tints go flat. */
+    .xwLit { background: color-mix(in srgb, var(--acc) 14%, var(--winBg)) }
+
+    .xwCur {
+      background: color-mix(in srgb, var(--acc) 40%, var(--winBg));
+      box-shadow: inset 0 0 0 2px var(--acc);
+      z-index: 1
+    }
+
+    /* Wrong letters are tinted as well as struck through — colour alone is not
+       a signal everyone can read. */
+    .xwWrong { background: color-mix(in srgb, var(--bad) 16%, var(--winBg)) }
+    .xwWrong .xwLtr { color: var(--bad); text-decoration: line-through }
     .xwDone { background: color-mix(in srgb, var(--acc) 20%, var(--winBg)) }
 
-    .xwCurrent {
-      font-size: .78rem;
-      line-height: 1.5;
-      color: var(--txt2);
-      min-height: 2.4em
+    .xwCell:focus-visible {
+      outline: 2px solid var(--acc);
+      outline-offset: -3px;
+      z-index: 2
     }
 
-    .xwCurrent b {
-      color: var(--acc);
+    /* ── progress ── */
+    .xwProg {
+      display: flex;
+      align-items: center;
+      gap: 9px
+    }
+
+    .xwTrack {
+      flex: 1;
+      height: 5px;
+      border-radius: 99px;
+      background: var(--line);
+      overflow: hidden
+    }
+
+    .xwFill {
+      display: block;
+      height: 100%;
+      width: 0;
+      border-radius: 99px;
+      background: var(--acc);
+      transition: width .18s ease
+    }
+
+    .xwCount {
       font-family: var(--fontHd);
-      margin-right: 5px;
-      text-transform: lowercase
+      font-size: .64rem;
+      color: var(--txt2);
+      font-variant-numeric: tabular-nums
     }
 
+    /* ── keys ── */
     .xwKeys { display: flex; flex-direction: column; gap: 4px }
     .xwKeyRow { display: flex; gap: 3px; justify-content: center }
 
     .xwKey {
       flex: 1;
       min-width: 0;
-      padding: 9px 2px;
+      padding: 11px 2px;
       border: 1.5px solid var(--line);
       border-radius: var(--radSm);
       background: color-mix(in srgb, var(--acc) 5%, var(--winBg));
-      font-size: .7rem;
+      font-size: .72rem;
       font-weight: 700;
       color: var(--txt);
-      cursor: pointer
+      cursor: pointer;
+      transition: background .1s, border-color .15s
     }
 
     .xwKey:hover { border-color: var(--acc) }
+    .xwKey:active { background: color-mix(in srgb, var(--acc) 30%, var(--winBg)) }
     .xwKeyWide { flex: 1.5 }
 
+    /* The on-screen keys are for thumbs. Anyone with a real keyboard gets the
+       shortcuts instead, and the vertical space back. */
+    .xwHint {
+      display: none;
+      font-size: .66rem;
+      line-height: 1.5;
+      color: var(--txt2);
+      text-align: center
+    }
+
+    .xwHint b {
+      font-family: var(--fontHd);
+      color: var(--txt)
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .xwKeys { display: none }
+      .xwHint { display: block }
+    }
+
+    /* ── clue list ── */
     .xwClues {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
       margin-top: 4px
+    }
+
+    @container (max-width: 380px) {
+      .xwClues { grid-template-columns: 1fr }
     }
 
     .xwHd {
@@ -1752,18 +1882,21 @@
 
     .xwClue {
       display: flex;
-      gap: 6px;
+      gap: 7px;
       width: 100%;
+      min-height: 30px;
+      align-items: baseline;
       text-align: left;
-      padding: 4px 3px;
+      padding: 6px 6px;
       border: none;
-      border-radius: 3px;
+      border-radius: 5px;
       background: none;
       font-family: var(--font);
-      font-size: .68rem;
+      font-size: .7rem;
       line-height: 1.4;
       color: var(--txt2);
-      cursor: pointer
+      cursor: pointer;
+      transition: background .12s, opacity .15s
     }
 
     .xwClue b {
@@ -1773,11 +1906,17 @@
     }
 
     .xwClue:hover { background: color-mix(in srgb, var(--acc) 9%, transparent) }
+    .xwClue:focus-visible { outline: 2px solid var(--acc); outline-offset: -2px }
 
     .xwClueOn {
       background: color-mix(in srgb, var(--acc) 15%, transparent);
       color: var(--txt)
     }
+
+    /* Answered clues step back so what is left to do stands out. */
+    .xwClueDone { opacity: .45 }
+    .xwClueDone.xwClueOn { opacity: .8 }
+    .xwClueDone b::after { content: ' ✓'; color: var(--acc) }
 
     /* ── sticky mobile CTA ───────────────────────────────── */
     #mobileCta {

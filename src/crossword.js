@@ -82,7 +82,13 @@ ENTRIES.forEach(e => {
   if (e.clue === '(no clue)') console.warn('crossword: no clue for', e.num + e.dir, e.answer);
 });
 
+
 const KEYS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+const WHITE = [...GRID.join('')].filter(ch => ch !== BLOCK).length;
+const dirName = d => (d === 'A' ? 'across' : 'down');
+
+/* The two buttons that throw work away ask twice; the label is the prompt. */
+const LABELS = { check: 'check', word: 'reveal word', all: 'reveal all', clear: 'clear' };
 
 export const meta = { id: 'crossword', title: 'crossword', icon: '✝️', w: 470, h: 700 };
 
@@ -93,7 +99,9 @@ export function start(root) {
   let at = 0;                 /* index into cur.cells */
   let checked = false;        /* wrong letters stay flagged until the next edit */
   let done = false;
-  let message = 'across and down. click a square, or pick a clue.';
+  let armed = null;           /* a destructive button waiting for its second press */
+  let armTimer = 0;
+  let message = 'a theology crossword. click a square or a clue, then type.';
 
   const inCur = new Set();
 
@@ -102,51 +110,96 @@ export function start(root) {
     cur.cells.forEach(([r, c]) => inCur.add(`${r},${c}`));
   }
 
-  function entryAt(r, c, dir) {
-    return ENTRIES.find(e => e.dir === dir && e.cells.some(([y, x]) => y === r && x === c));
+  /* ── entry helpers ──────────────────────────────── */
+  const entryAt = (r, c, dir) => ENTRIES.find(e => e.dir === dir && e.cells.some(([y, x]) => y === r && x === c));
+  const isFull = e => e.cells.every(([y, x]) => fill[y][x]);
+  const firstGap = e => { const i = e.cells.findIndex(([y, x]) => !fill[y][x]); return i === -1 ? 0 : i; };
+  const solved = () => GRID.every((row, r) => [...row].every((ch, c) => ch === BLOCK || fill[r][c] === ch));
+
+  /* Landing on a clue should land on the first square you still have to think
+     about, not on a letter that is already sitting there. */
+  function goEntry(entry, index) {
+    cur = entry;
+    at = index === undefined ? firstGap(entry) : index;
+    disarm();
+    sync();
+  }
+
+  function step(delta) {
+    const i = ENTRIES.indexOf(cur);
+    goEntry(ENTRIES[(i + delta + ENTRIES.length) % ENTRIES.length]);
+  }
+
+  function nextUnfinished() {
+    const i = ENTRIES.indexOf(cur);
+    for (let k = 1; k <= ENTRIES.length; k++) {
+      const e = ENTRIES[(i + k) % ENTRIES.length];
+      if (!isFull(e)) return e;
+    }
+    return null;
   }
 
   function select(r, c, preferred) {
     if (isBlock(r, c)) return;
-    const here = `${r},${c}`;
+    const [cr, cc] = cur.cells[at];
+    /* Clicking the square you are already on flips across/down. Clicking any
+       other square in the same word just moves along it — flipping there is
+       the classic way to lose your place. */
     const wanted = preferred
-      || (inCur.has(here) ? (cur.dir === 'A' ? 'D' : 'A') : cur.dir);
+      || (r === cr && c === cc ? (cur.dir === 'A' ? 'D' : 'A') : cur.dir);
     /* A cell may belong to only one direction — fall back rather than deselect. */
     const next = entryAt(r, c, wanted) || entryAt(r, c, wanted === 'A' ? 'D' : 'A');
     if (!next) return;
     cur = next;
     at = cur.cells.findIndex(([y, x]) => y === r && x === c);
-    draw();
+    disarm();
+    sync();
   }
 
-  function solved() {
-    return GRID.every((row, r) => [...row].every((ch, c) => ch === BLOCK || fill[r][c] === ch));
-  }
-
+  /* ── typing ─────────────────────────────────────── */
   function put(ch) {
     if (done) return;
     const [r, c] = cur.cells[at];
     fill[r][c] = ch;
     checked = false;
-    /* Skip to the next gap in this entry, so filling around a stuck letter
-       doesn't mean stepping over it by hand every time. */
-    const nextGap = cur.cells.findIndex(([y, x], i) => i > at && !fill[y][x]);
-    at = nextGap !== -1 ? nextGap : Math.min(at + 1, cur.cells.length - 1);
+    disarm();
 
     if (solved()) {
       done = true;
       message = 'every square right. that is the whole grid.';
+      sync();
+      return;
     }
-    draw();
+
+    /* Skip to the next gap in this entry, so filling around a stuck letter
+       doesn't mean stepping over it by hand every time. */
+    const after = cur.cells.findIndex(([y, x], i) => i > at && !fill[y][x]);
+    if (after !== -1) at = after;
+    else if (!isFull(cur)) at = firstGap(cur);
+    else {
+      /* Word finished — carry on at the next unsolved clue rather than
+         parking on its last square. */
+      const nxt = nextUnfinished();
+      if (nxt) { cur = nxt; at = firstGap(nxt); }
+    }
+    sync();
   }
 
   function back() {
     if (done) return;
     const [r, c] = cur.cells[at];
     checked = false;
+    disarm();
     if (fill[r][c]) fill[r][c] = '';
     else if (at > 0) { at--; const [pr, pc] = cur.cells[at]; fill[pr][pc] = ''; }
-    draw();
+    else {
+      /* Nothing left to delete at the head of an entry — step back into the
+         previous clue instead of swallowing the key. */
+      const i = ENTRIES.indexOf(cur);
+      cur = ENTRIES[(i - 1 + ENTRIES.length) % ENTRIES.length];
+      at = cur.cells.length - 1;
+    }
+    sync();
   }
 
   function move(dr, dc) {
@@ -161,30 +214,37 @@ export function start(root) {
     }
   }
 
-  function drawGrid() {
+  /* ── shell, built once ──────────────────────────── */
+  /* The grid, the clue list and the keyboard never change shape, so they are
+     rendered once and then updated in place. Rebuilding the subtree on every
+     keystroke — which is what this used to do — threw away the clue list's
+     scroll position and the keyboard focus along with it. */
+  function gridHtml() {
     let html = '';
-    const [cr, cc] = cur.cells[at];
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         if (isBlock(r, c)) { html += '<div class="xwBlock"></div>'; continue; }
-        const cls = ['xwCell'];
-        if (inCur.has(`${r},${c}`)) cls.push('xwLit');
-        if (r === cr && c === cc) cls.push('xwCur');
-        if (checked && fill[r][c] && fill[r][c] !== GRID[r][c]) cls.push('xwWrong');
-        if (done) cls.push('xwDone');
         const n = NUMBERS[`${r},${c}`];
-        html += `<button type="button" class="${cls.join(' ')}" data-r="${r}" data-c="${c}">
-            ${n ? `<span class="xwNum">${n}</span>` : ''}<span class="xwLtr">${fill[r][c] || ''}</span>
+        html += `<button type="button" class="xwCell" data-r="${r}" data-c="${c}" tabindex="-1">
+            ${n ? `<span class="xwNum">${n}</span>` : ''}<span class="xwLtr"></span>
           </button>`;
       }
     }
     /* The column count lives with the grid data, not the stylesheet. */
-    return `<div class="xwGrid" style="grid-template-columns:repeat(${COLS},1fr)">${html}</div>`;
+    return `<div class="xwGrid" role="group" aria-label="crossword grid"
+        style="grid-template-columns:repeat(${COLS},1fr)">${html}</div>`;
   }
 
-  function drawClues() {
+  function keysHtml() {
+    return KEYS.map(row => `<div class="xwKeyRow">
+        ${[...row].map(ch => `<button type="button" class="xwKey" data-key="${ch}">${ch}</button>`).join('')}
+        ${row === 'ZXCVBNM' ? '<button type="button" class="xwKey xwKeyWide" data-key="BACK" aria-label="backspace">⌫</button>' : ''}
+      </div>`).join('');
+  }
+
+  function cluesHtml() {
     const list = dir => ENTRIES.filter(e => e.dir === dir).map(e =>
-      `<li><button type="button" class="xwClue${e === cur ? ' xwClueOn' : ''}" data-num="${e.num}" data-dir="${e.dir}">
+      `<li><button type="button" class="xwClue" data-num="${e.num}" data-dir="${e.dir}">
           <b>${e.num}</b><span>${e.clue}</span>
         </button></li>`).join('');
     return `<div class="xwClues">
@@ -193,38 +253,182 @@ export function start(root) {
       </div>`;
   }
 
-  function draw() {
-    refreshHighlight();
-    const board = KEYS.map(row => `<div class="xwKeyRow">
-        ${[...row].map(ch => `<button type="button" class="xwKey" data-key="${ch}">${ch}</button>`).join('')}
-        ${row === 'ZXCVBNM' ? '<button type="button" class="xwKey xwKeyWide" data-key="BACK">⌫</button>' : ''}
-      </div>`).join('');
+  /* The clue you are solving rides in a bar pinned to the top of the window,
+     with the two arrows that walk the clue list. Before this it sat under the
+     grid, which on a phone meant scrolling away from the squares to read it. */
+  root.innerHTML = `
+    <div class="pzWrap">
+      <div class="xwTop">
+        <button type="button" class="xwNav" data-act="prev" aria-label="previous clue">‹</button>
+        <p class="xwCurrent"><b data-role="pos"></b><span data-role="clue"></span></p>
+        <button type="button" class="xwNav" data-act="next" aria-label="next clue">›</button>
+      </div>
+      ${gridHtml()}
+      <div class="xwProg">
+        <span class="xwTrack"><i class="xwFill" data-role="bar"></i></span>
+        <span class="xwCount" data-role="count"></span>
+      </div>
+      <p class="pzMsg" data-role="msg" role="status" aria-live="polite"></p>
+      <div class="xwKeys">${keysHtml()}</div>
+      <p class="xwHint">type to fill · <b>space</b> swaps across and down · <b>tab</b> jumps to the next clue</p>
+      <div class="pzBtns">
+        <button type="button" class="btnSm pzBtn" data-act="check">check</button>
+        <button type="button" class="btnSm pzBtn" data-act="word">reveal word</button>
+        <button type="button" class="btnSm pzBtn" data-act="all">reveal all</button>
+        <button type="button" class="btnSm pzBtn" data-act="clear">clear</button>
+      </div>
+      ${cluesHtml()}
+    </div>`;
 
-    root.innerHTML = `
-      <div class="pzWrap">
-        <p class="pzNote">a theology crossword</p>
-        ${drawGrid()}
-        <p class="xwCurrent"><b>${cur.num} ${cur.dir === 'A' ? 'across' : 'down'}</b> ${cur.clue}</p>
-        <p class="pzMsg${done ? ' pzWin' : checked ? ' pzWarn' : ''}">${message}</p>
-        <div class="xwKeys">${board}</div>
-        <div class="pzBtns">
-          <button type="button" class="btnSm pzBtn" data-act="check"${done ? ' disabled' : ''}>check</button>
-          <button type="button" class="btnSm pzBtn" data-act="clear"${done ? ' disabled' : ''}>clear</button>
-          <button type="button" class="btnSm pzBtn" data-act="reveal"${done ? ' disabled' : ''}>reveal</button>
-        </div>
-        ${drawClues()}
-      </div>`;
+  const pick = sel => root.querySelector(sel);
+  const posEl = pick('[data-role="pos"]');
+  const clueEl = pick('[data-role="clue"]');
+  const barEl = pick('[data-role="bar"]');
+  const countEl = pick('[data-role="count"]');
+  const msgEl = pick('[data-role="msg"]');
+  const cells = [...root.querySelectorAll('.xwCell')].map(el => ({
+    el, ltr: el.querySelector('.xwLtr'), r: +el.dataset.r, c: +el.dataset.c,
+  }));
+  const clueBtns = [...root.querySelectorAll('.xwClue')].map(el => ({
+    el, entry: ENTRIES.find(e => e.num === +el.dataset.num && e.dir === el.dataset.dir),
+  }));
+  const actBtns = new Map(Object.keys(LABELS).map(a => [a, root.querySelector(`[data-act="${a}"]`)]));
+
+  /* ── paint ──────────────────────────────────────── */
+  function sync() {
+    refreshHighlight();
+    const [cr, cc] = cur.cells[at];
+    let filled = 0;
+
+    for (const { el, ltr, r, c } of cells) {
+      const ch = fill[r][c];
+      if (ch) filled++;
+      if (ltr.textContent !== ch) ltr.textContent = ch;
+      const here = r === cr && c === cc;
+      el.classList.toggle('xwLit', inCur.has(`${r},${c}`));
+      el.classList.toggle('xwCur', here);
+      el.classList.toggle('xwWrong', checked && !!ch && ch !== GRID[r][c]);
+      el.classList.toggle('xwDone', done);
+      /* One stop on the tab ring, so tabbing into the grid lands on the cursor
+         rather than walking all sixty squares. */
+      el.tabIndex = here ? 0 : -1;
+      el.setAttribute('aria-label', `row ${r + 1} column ${c + 1}, ${ch || 'empty'}`);
+    }
+
+    posEl.textContent = `${cur.num} ${dirName(cur.dir)}`;
+    clueEl.textContent = cur.clue;
+    barEl.style.width = `${Math.round((filled / WHITE) * 100)}%`;
+    countEl.textContent = `${filled}/${WHITE}`;
+    msgEl.textContent = message;
+    msgEl.className = `pzMsg${done ? ' pzWin' : checked ? ' pzWarn' : ''}`;
+
+    for (const { el, entry } of clueBtns) {
+      el.classList.toggle('xwClueOn', entry === cur);
+      el.classList.toggle('xwClueDone', isFull(entry));
+    }
+
+    for (const [act, btn] of actBtns) {
+      btn.textContent = armed === act ? 'sure?'
+        : act === 'clear' && done ? 'start over' : LABELS[act];
+      btn.classList.toggle('pzArmed', armed === act);
+      /* Everything but clear is spent once the grid is finished; clear becomes
+         the way back in rather than greying out with the rest. */
+      btn.disabled = done && act !== 'clear';
+    }
+
+    /* Follow the cursor with focus, but only for someone already navigating by
+       keyboard — otherwise this would yank the window's scroll on every click. */
+    const active = document.activeElement;
+    if (active && active.classList.contains('xwCell') && root.contains(active)) {
+      const target = cells.find(x => x.r === cr && x.c === cc);
+      if (target && target.el !== active) target.el.focus({ preventScroll: true });
+    }
   }
 
-  /* Delegated and bound once — draw() replaces the whole subtree. */
+  /* ── the second-press guard ─────────────────────── */
+  function disarm() {
+    if (!armed) return;
+    armed = null;
+    clearTimeout(armTimer);
+  }
+
+  function arm(act) {
+    if (armed === act) { disarm(); return true; }
+    clearTimeout(armTimer);
+    armed = act;
+    armTimer = setTimeout(() => { armed = null; sync(); }, 4000);
+    sync();
+    return false;
+  }
+
+  /* ── actions ────────────────────────────────────── */
+  const eachWhite = fn => GRID.forEach((row, r) => [...row].forEach((ch, c) => { if (ch !== BLOCK) fn(r, c, ch); }));
+
+  const ACTIONS = {
+    prev: () => step(-1),
+    next: () => step(1),
+
+    check() {
+      checked = true;
+      let wrong = 0, blanks = 0;
+      eachWhite((r, c, ch) => {
+        if (!fill[r][c]) blanks++;
+        else if (fill[r][c] !== ch) wrong++;
+      });
+      message = wrong ? `${wrong} square${wrong === 1 ? '' : 's'} wrong — struck through in the grid.`
+        : blanks ? `nothing wrong so far — ${blanks} still empty.`
+          : 'all correct.';
+      sync();
+    },
+
+    /* A whole grid was the only hint on offer, which is no hint at all. One
+       word is the size of help people actually want. */
+    word() {
+      const label = `${cur.num} ${dirName(cur.dir)}`;
+      cur.cells.forEach(([r, c]) => { fill[r][c] = GRID[r][c]; });
+      checked = false;
+      if (solved()) {
+        done = true;
+        message = 'that fills the last of it.';
+      } else {
+        message = `${label} filled in.`;
+        const nxt = nextUnfinished();
+        if (nxt) { cur = nxt; at = firstGap(nxt); }
+      }
+      sync();
+    },
+
+    all() {
+      if (!arm('all')) return;
+      eachWhite((r, c, ch) => { fill[r][c] = ch; });
+      checked = false;
+      done = true;
+      message = 'revealed — the whole grid.';
+      sync();
+    },
+
+    clear() {
+      /* A finished grid has nothing left to lose, so no second press there. */
+      if (!done && !arm('clear')) return;
+      eachWhite((r, c) => { fill[r][c] = ''; });
+      checked = false;
+      done = false;
+      cur = ENTRIES[0];
+      at = 0;
+      message = 'cleared. click a square or a clue, then type.';
+      sync();
+    },
+  };
+
+  /* Delegated and bound once — sync() only ever edits what changed. */
   root.addEventListener('click', e => {
     const sq = e.target.closest('[data-r]');
     if (sq) { select(+sq.dataset.r, +sq.dataset.c); return; }
 
     const clue = e.target.closest('[data-num]');
     if (clue) {
-      const entry = ENTRIES.find(x => x.num === +clue.dataset.num && x.dir === clue.dataset.dir);
-      if (entry) { cur = entry; at = 0; draw(); }
+      const hit = clueBtns.find(x => x.el === clue);
+      if (hit) goEntry(hit.entry);
       return;
     }
 
@@ -232,34 +436,14 @@ export function start(root) {
     if (k) { k.dataset.key === 'BACK' ? back() : put(k.dataset.key); return; }
 
     const act = e.target.closest('[data-act]')?.dataset.act;
-    if (act === 'check') {
-      checked = true;
-      let wrong = 0, blanks = 0;
-      GRID.forEach((row, r) => [...row].forEach((ch, c) => {
-        if (ch === BLOCK) return;
-        if (!fill[r][c]) blanks++;
-        else if (fill[r][c] !== ch) wrong++;
-      }));
-      message = wrong ? `${wrong} square${wrong === 1 ? '' : 's'} wrong.`
-        : blanks ? `nothing wrong so far — ${blanks} still empty.`
-          : 'all correct.';
-      draw();
-    } else if (act === 'clear') {
-      GRID.forEach((row, r) => [...row].forEach((ch, c) => { if (ch !== BLOCK) fill[r][c] = ''; }));
-      checked = false;
-      message = 'cleared.';
-      draw();
-    } else if (act === 'reveal') {
-      GRID.forEach((row, r) => [...row].forEach((ch, c) => { if (ch !== BLOCK) fill[r][c] = ch; }));
-      checked = false;
-      done = true;
-      message = 'revealed — the whole grid.';
-      draw();
-    }
+    if (ACTIONS[act]) ACTIONS[act]();
   });
 
-  /* Physical keyboard, but only while this window is the focused one. */
-  document.addEventListener('keydown', e => {
+  /* Physical keyboard, but only while this window is the focused one. Reopening
+     the puzzle builds a fresh grid, so the old listener retires itself once its
+     root is off the page. */
+  function onKey(e) {
+    if (!document.contains(root)) { document.removeEventListener('keydown', onKey); return; }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     const win = root.closest('.win');
     if (!win || win.classList.contains('hidden') || !win.classList.contains('focused')) return;
@@ -270,13 +454,15 @@ export function start(root) {
     else if (e.key === 'ArrowRight') { move(0, 1); e.preventDefault(); }
     else if (e.key === 'ArrowUp') { move(-1, 0); e.preventDefault(); }
     else if (e.key === 'ArrowDown') { move(1, 0); e.preventDefault(); }
-    else if (e.key === 'Tab' || e.key === ' ') {
-      /* Both classic ways to flip between across and down. */
+    else if (e.key === 'Tab' || e.key === 'Enter') { step(e.shiftKey ? -1 : 1); e.preventDefault(); }
+    else if (e.key === ' ') {
+      /* The classic way to flip between across and down. */
       const [r, c] = cur.cells[at];
       select(r, c, cur.dir === 'A' ? 'D' : 'A');
       e.preventDefault();
     }
-  });
+  }
+  document.addEventListener('keydown', onKey);
 
-  draw();
+  sync();
 }
