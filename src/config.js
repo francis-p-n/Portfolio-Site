@@ -1,6 +1,5 @@
-// ============================================================
-// CUSTOMIZE — edit this file only to change site content/colors
-// ============================================================
+/* All site copy and colours. This is the only file to edit to change what the
+   site says. */
 export const CFG = {
   name: "francis",
   nameKanji: "",
@@ -11,8 +10,6 @@ export const CFG = {
   avatarEmoji: "🖊️",
   desktopTitle: "Francis P.N. — CS & Data Science, Monash University Malaysia",
 
-  /* TODO(Francis): the [N] placeholders below are the only figures I could not
-     verify. Replace them before the next deploy — see R-05 of the PRD. */
   aboutBio: `hi! i'm <strong>Francis</strong> — I'm currently studying Computer Science in Data Science at Monash University Malaysia, and I'm deeply passionate about journalism, storytelling, and community building.<br><br>I also dedicate a lot of my time to youth leadership and mentoring, serving as Interim Leader for the 46th Petaling Perdana Scout Troop and volunteering at the Church of the Assumption as a teacher.`,
   edu: "Bachelors of Computer Science in Data Science",
   eduNote: "(2025 - Present) Monash University Malaysia",
@@ -99,8 +96,7 @@ export const CFG = {
     },
   ],
 
-  /* Rendered in the 'experience' window, work first then leadership, each as a
-     card with a bullet list of achievements. */
+  /* Rendered in the about window as the career section. */
   workExperience: [
     {
       org: "Alpha Malaysia",
@@ -173,22 +169,18 @@ export const CFG = {
     { q: "What are you currently working on?", a: "Forming the Monash Catholic Society (MCS), the <em>Life to the Fullness</em> writing project, Project Avaris (an RPG), and a few hardware side-projects." },
   ],
 
-  /* Article content lives in src/articles-data.js — this is where the
-     "everything else" link at the foot of the articles window points. */
+  /* Where the "everything else" link at the foot of the articles window points. */
   substackUrl: "https://substack.com/@francispn",
 
-  /* Provide filenames here for sound effects (e.g., 'hover.mp3' from zapsplat inside this folder) */
+  /* Sound effect files, relative to the site root. Leave empty to disable. */
   sfxHover: "",
   sfxClick: "sfx/click.mp3",
 
-  /* Sharyap relies heavily on orange as an accent color for links/buttons */
+  /* Accent, wallpaper and window fill, light then dark. */
   accent: "#f5a11c",
   accentDk: "#d18615",
-  /* Soft sky blue background to mimic Sharyap's home screen */
   desktopBg: "#e0f2fe",
   desktopBgDk: "#0f172a",
-  /* Pure white background for modern minimalist window interiors */
   winBg: "#ffffff",
   winBgDk: "#1e293b",
-  /* Removing taskbar colors as Sharyap doesn't use a taskbar */
 };
