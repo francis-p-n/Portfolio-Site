@@ -169,6 +169,10 @@ export const CFG = {
     { q: "What are you currently working on?", a: "Forming the Monash Catholic Society (MCS), the <em>Life to the Fullness</em> writing project, Project Avaris (an RPG), and a few hardware side-projects." },
   ],
 
+  /* Absolute origin, used to build the share links and OG tags baked into
+     the per-article pages at build time. No trailing slash. */
+  siteUrl: "https://fpn-portfolio.vercel.app",
+
   /* Where the "everything else" link at the foot of the articles window points. */
   substackUrl: "https://substack.com/@francispn",
 

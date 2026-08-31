@@ -58,7 +58,7 @@ export function renderArticlesHtml() {
 
 export async function openArticleWindow(manager, id) {
   const article = PUBLISHED.find(a => a.id === id);
-  if (!article) return;
+  if (!article) return false;
 
   const marked = await loadMarked();
   const body = await marked.parse(article.body || '');
@@ -82,9 +82,12 @@ export async function openArticleWindow(manager, id) {
           <div class="artByName">${escapeHtml(CFG.name)}</div>
           <div class="artByDate">${formatDate(article.date, true)}</div>
         </div>
+        <button type="button" class="artShare" data-act="article:share" data-article="${escapeHtml(article.id)}">copy link</button>
       </div>
       <div class="mdBody">${body}</div>
       ${tagRow ? `<div class="tagRow artPageTags">${tagRow}</div>` : ''}
     </div>`,
   });
+
+  return true;
 }

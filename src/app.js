@@ -10,6 +10,32 @@ import { Lightbox } from './ui/lightbox.js';
 import { SoundBoard } from './ui/sound.js';
 import { Theme } from './ui/theme.js';
 import { WindowManager } from './ui/window-manager.js';
+import { Router } from './ui/router.js';
+
+/* execCommand is the fallback for browsers that refuse the async clipboard on
+   an insecure origin or without a permission grant. */
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    /* fall through */
+  }
+  const field = document.createElement('textarea');
+  field.value = text;
+  field.setAttribute('readonly', '');
+  field.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+  document.body.appendChild(field);
+  field.select();
+  let ok = false;
+  try {
+    ok = document.execCommand('copy');
+  } catch {
+    ok = false;
+  }
+  field.remove();
+  return ok;
+}
 
 const POKES_TO_UNLOCK = 5;
 const POKE_DECAY_MS = 1400;
@@ -25,6 +51,7 @@ class PortfolioOS {
       icons: this.icons,
     });
     this.manager = new WindowManager();
+    this.router = new Router(this.manager, { openArticle: id => this.openArticle(id) });
     this.lightbox = new Lightbox(document.getElementById('lb'));
     this.accordion = new Accordion();
     this.actions = new ActionBus();
@@ -39,6 +66,10 @@ class PortfolioOS {
     this.wireActions();
     this.openDesktop();
     this.dock = new Dock(this.manager, PAGES);
+    /* Only now — the desktop opens every window on boot, and each focus would
+       otherwise overwrite the incoming deep link before we could read it. */
+    this.manager.onRoute = id => (id ? this.router.sync(id) : this.router.clear());
+    this.router.start();
     this.mountCarousels(document);
     this.icons.hydrate();
     document.getElementById('loader').classList.add('done');
@@ -56,10 +87,35 @@ class PortfolioOS {
       .on('lightbox:open', data => this.lightbox.open(data.src, data.alt))
       .on('carousel:go', (data, el) => this.carouselFor(el)?.go(Number(data.index)))
       .on('carousel:step', (data, el) => this.carouselFor(el)?.step(Number(data.step)))
-      .on('article:open', data => openArticleWindow(this.manager, data.article))
+      .on('article:open', data => this.openArticle(data.article, true))
+      .on('article:share', (data, el) => this.shareArticle(data.article, el))
       .on('avatar:poke', () => this.poke())
       .on('puzzle:open', () => this.openCrossword())
       .on('game:open', () => this.openPathfinder());
+  }
+
+  /* Opens the article and, for a click rather than a deep link, leaves a
+     history entry so the back button returns to the list. */
+  async openArticle(id, push = false) {
+    const opened = await openArticleWindow(this.manager, id);
+    if (!opened) {
+      this.manager.open('articles');
+      return false;
+    }
+    this.router.sync(`art-${id}`, push);
+    return true;
+  }
+
+  async shareArticle(id, el) {
+    const url = this.router.shareUrl(id);
+    const done = await copyText(url);
+    el.textContent = done ? 'link copied' : url;
+    el.classList.toggle('artShareOk', done);
+    clearTimeout(this.shareTimer);
+    this.shareTimer = setTimeout(() => {
+      el.textContent = 'copy link';
+      el.classList.remove('artShareOk');
+    }, done ? 1800 : 6000);
   }
 
   openDesktop() {

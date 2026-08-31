@@ -16,7 +16,6 @@ export const ARTICLES = [
     description: 'Words carry the weight of life and death, and the pause before speaking is not hesitation but the discipline in which wisdom and grace are formed.',
     tags: ['Reflection', 'Faith'],
     img: '',
-    highlight: true,
     body: `Words are powerful. One word from a bad boss can set your career back by years. One good recommendation can skyrocket your chances in anything. Words have the power to make or break someone's life.
 
 "Death and life are in the power of the tongue," says King Solomon. He knew the weight of words. They can build someone up, or tear them down.
@@ -39,6 +38,7 @@ Do I take the time to think before speaking?`,
     description: 'Latin did not leave the Mass by decree but by drift, and what we traded away was a stable text and an audible sign that the Church is one.',
     tags: ['Reflection', 'Faith'],
     img: '',
+    highlight: true,
     body: `### A Reflection on Latin, and What We Traded It For
 
 I was at a Mass a few weeks back where part of the Sanctus was sung in Latin, and I noticed something I hadn't really paid attention to before. When the Latin came around, most people just stopped singing. Not really out of reverence, I think, more because they didn't know what to do with it. And it wasn't just the congregation, even the choir was struggling through it.

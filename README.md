@@ -21,6 +21,9 @@ Live at [fpn-portfolio.vercel.app](https://fpn-portfolio.vercel.app/).
   `src/articles-data.js`. No database and no runtime fetch.
 - **Code splitting** — `marked` and both easter eggs load only when needed, so
   the entry chunk stays small.
+- **Shareable articles** — every window has a hash route, and the build emits a
+  static page per post at `/a/<slug>/` carrying its own preview tags and full
+  text, so a single article can be sent to someone and unfurls properly.
 - **Theming** — CSS custom properties, dark mode persisted to `localStorage`.
 - **Two easter eggs** — a Dijkstra-scored pathfinding puzzle and a hand-built
   crossword, both hidden.

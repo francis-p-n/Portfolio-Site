@@ -218,6 +218,8 @@ export class AppWindow {
 export class WindowManager {
   constructor() {
     this.windows = new Map();
+    /* Set by the Router so the address bar follows whichever window is up. */
+    this.onRoute = null;
     this.watchers = [];
     this.z = BASE_Z;
     this.meta = document.querySelector('meta[name="description"]');
@@ -263,6 +265,7 @@ export class WindowManager {
     win.el.style.zIndex = this.z;
     this.list().forEach(other => other.el.classList.toggle('focused', other === win));
     this.retitle(win);
+    this.onRoute?.(id);
   }
 
   renormalize() {
@@ -290,6 +293,7 @@ export class WindowManager {
     const win = this.get(id);
     if (!win) return;
     win.stow();
+    this.onRoute?.(null);
     this.announce();
   }
 

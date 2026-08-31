@@ -102,6 +102,38 @@ sequenceDiagram
 
 ---
 
+## Deep links and sharing
+
+Every window is addressable. `src/ui/router.js` maps the hash to a window and
+back again — `#/` for home, `#/projects` for a section, `#/article/<slug>` for
+a post. `WindowManager.onRoute` fires on focus and on stow, so the address bar
+follows whatever is on top; focus replaces the entry, an explicit open pushes
+one, so the back button walks the windows a visitor actually opened.
+
+A hash alone is not shareable, though — no unfurler reads one, and none of them
+run the JS behind it. So the Vite build emits one static page per published
+post at `/a/<slug>/`:
+
+```mermaid
+graph LR
+    Visitor[Someone opens<br/>/a/lost-in-translation]
+    Page[Static share page<br/>own OG tags + full text]
+    App[index.html]
+    Win[Article window]
+    Bot[Unfurler / crawler<br/>no JS]
+
+    Visitor --> Page
+    Page -->|location.replace| App
+    App -->|Router reads #/article/slug| Win
+    Page --> Bot
+```
+
+The plugin lives in `vite.config.js` and also rewrites `sitemap.xml` so each
+post is listed. The copy-link button in an article window hands out the
+`/a/<slug>` form, not the hash.
+
+---
+
 ## Code splitting
 
 `marked`, `game.js` and `crossword.js` are dynamic imports, so none of them are
