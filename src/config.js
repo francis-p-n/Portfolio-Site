@@ -6,7 +6,7 @@ export const CFG = {
   tagline: "Data Science @ Monash. Theology, code, and community.",
   location: "Kuala Lumpur, Malaysia (UTC+8)",
   email: "francis.pn.29757@gmail.com",
-  avatar: "",
+  avatar: "images/avatar.webp",
   avatarEmoji: "🖊️",
   desktopTitle: "Francis P.N. — CS & Data Science, Monash University Malaysia",
 
