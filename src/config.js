@@ -31,6 +31,17 @@ export const CFG = {
     { name: "Data Analytics", level: "Intermediate" },
     { name: "Web Scraping — openpyxl / requests", level: "Intermediate" },
     { name: "Git & GitHub", level: "Basic" },
+    { name: "Lua" },
+    { name: "C#" },
+    { name: "Scikit-Learn" },
+    { name: "TensorFlow" },
+    { name: "OpenGL" },
+    { name: "Supabase" },
+    { name: "Firebase" },
+    { name: "Vercel" },
+    { name: "Canva" },
+    { name: "Affinity" },
+    { name: "Microsoft Office" },
   ],
   skillsCreative: [
     { name: "Theological Writing", level: "Advanced" },
@@ -38,6 +49,10 @@ export const CFG = {
     { name: "Public Speaking", level: "Intermediate" },
     { name: "Mentorship & Youth Leadership", level: "Intermediate" },
     { name: "Event Photography", level: "Intermediate" },
+    { name: "Journalism" },
+    { name: "Storytelling" },
+    { name: "Research" },
+    { name: "Public Pitching" },
   ],
 
   projects: [
@@ -65,17 +80,23 @@ export const CFG = {
       desc: "An AI-search optimisation platform for hotels, built with Shariq Nauman for UMHackathon 2026. Multi-agent workflows simulate how AI travel agents evaluate a property, then generate machine-readable content so the hotel stays discoverable.",
       url: "https://github.com/ShariqNauman/aeo-optimizer", btn: "view source",
     },
-    /* TODO(Francis): fill in stack, links and fuller descriptions once these are further along. */
+    {
+      title: "ArkFlow Connect",
+      img: "", stack: "React · Tailwind · AI",
+      desc: "An AI platform managing zoo animal transfers and outbreak alerts. Finalist at GDG KL myHack 2026, built as a team of two; I built the React and Tailwind frontend and led the business side.",
+      url: "https://github.com/Fiery-Blaze/GDG-MyHack26", btn: "view source",
+    },
+    {
+      title: "easyLogistics",
+      img: "", stack: "Python · agentic workflow",
+      desc: "A tool built for the Averis x Monash Hackathon 2026 that checks Bills of Lading against shipping instructions, flagging mismatches with source evidence and using an agentic workflow to verify them. Team of 4; I was a full stack developer.",
+      url: "https://github.com/francis-p-n/mangkuk", btn: "view source",
+    },
+    /* TODO(Francis): fill in stack, links and fuller descriptions once this is further along. */
     {
       title: "Ekklesia",
       img: "", stack: "",
       desc: "A mobile app designed to be a one-stop source for all things Catholic in Malaysia.",
-      url: "", btn: "", wip: true,
-    },
-    {
-      title: "ArkFlow",
-      img: "", stack: "",
-      desc: "A SaaS platform targeted to streamline animal management for zoos and conservations.",
       url: "", btn: "", wip: true,
     },
   ],
@@ -103,7 +124,7 @@ export const CFG = {
       role: "Intern – Alpha for Church & Coach Engagement",
       period: "May – August 2026",
       bullets: [
-        "Orchestrated complex operational logistics for a 3,000-delegate conference, ensuring seamless flow of resources.",
+        "Assisted in logistics coordination for a 3,000-delegate conference, covering both the Alpha Hub and Megastar Arena simultaneously over 2 days alongside 150 volunteers.",
         "Streamlined and updated the leadership directory for 667 churches, implementing rigorous data validation protocols to improve communication accuracy and stakeholder engagement.",
         "Collaborated with senior leadership to formulate and execute strategic initiatives, utilizing analytical insights to align organizational goals with long-term operational objectives.",
       ],
@@ -113,7 +134,7 @@ export const CFG = {
       role: "Temporary Staff",
       period: "January – May 2025",
       bullets: [
-        "Spearheaded the training and development of student leaders, enhancing leadership competencies and operational readiness through structured mentorship and performance evaluations.",
+        "Spearheaded the training and development of at least 8 student leaders, enhancing leadership competencies and operational readiness through structured mentorship and performance evaluations.",
         "Managed Student Affairs social media channels, executing a strategic content plan that increased digital engagement and strengthened the college's community presence.",
         "Conceptualized and implemented sustainable frameworks for student soft skills development, ensuring long-term scalability and measurable growth in student professional capabilities.",
         "Coordinated the execution of the MCKL Dash for Charity 2025, managing cross-functional logistics and stakeholder communications to ensure a high-impact, successful community event.",
@@ -127,7 +148,7 @@ export const CFG = {
       role: "Interim Leader",
       period: "2023 – Present",
       bullets: [
-        "Trained multiple successful King Scouts.",
+        "Trained 4 successful recipients of the King Scout award, the highest award for youth in the Scout Association of Malaysia.",
         "Renewed training of student leaders and systems, allowing scouts to start earning merit badges again.",
         "Liaised regularly with the school administration and district/state-level Scout Commissioners to organize appropriate programs to train secondary school-age youth Scouts in leadership and survival skills.",
       ],
@@ -140,7 +161,6 @@ export const CFG = {
         "Handled the administration of multiple events, including post-event reports.",
         "Created questions and invigilated a coding competition.",
         "Handled communication between regular students and committee members.",
-        "Co-Director for the Monash Hackathon 2026.",
       ],
     },
     {
@@ -148,7 +168,7 @@ export const CFG = {
       role: "Orientation Camp ReSTA (Recruitment, Selection, Training, Appraisal), Camps 1–4",
       period: "2025",
       bullets: [
-        "Managed and advised the recruitment and selection process of facilitators.",
+        "Managed and advised the recruitment and selection process of 44 facilitators.",
         "Provided active mentorship, feedback, and training for 8 commanders alongside 2 partners.",
         "Liaised with staff members and spearheaded large-scale overhauls to outdated systems.",
       ],

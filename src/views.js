@@ -87,7 +87,7 @@ export function career() {
 
 function skillPills(pool) {
   return (pool || []).map(skill =>
-    `<span class="pill">${escapeHtml(skill.name)}<span class="pillLvl">${escapeHtml(skill.level)}</span></span>`).join('');
+    `<span class="pill">${escapeHtml(skill.name)}${skill.level ? `<span class="pillLvl">${escapeHtml(skill.level)}</span>` : ''}</span>`).join('');
 }
 
 function projectCard(project) {
