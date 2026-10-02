@@ -187,6 +187,13 @@ export const CFG = {
     { q: "Do you collaborate on open-source or side projects?", a: "Yes. I'm most interested in tools for churches and student communities, Python data tooling, and anything involving structured research datasets." },
     { q: "What time zone are you in and how do you prefer to be contacted?", a: "Kuala Lumpur, UTC+8. Email is best — I usually reply within 2–3 days." },
     { q: "What are you currently working on?", a: "Forming the Monash Catholic Society (MCS), the <em>Life to the Fullness</em> writing project, Project Avaris (an RPG), and a few hardware side-projects." },
+    { q: "Are you looking for internships?", a: "Yes, I'm open to internships, and I'm happy to work remotely as well as in person." },
+    { q: "What's your strongest area?", a: "Data science. That's what I'm studying at Monash and where most of my technical work sits." },
+    { q: "Is Ekklesia open to contributors or beta testers?", a: "Yes! The planned launch is mid 2027, and I'd love help from contributors and testers before then." },
+    { q: "Can other churches use your projects?", a: "Yes, easyPresent is open source and built for live church presentation." },
+    { q: "Can I republish or respond to your articles?", a: "Please don't republish them, but responses are very welcome. I plan to write on Substack in the future too." },
+    { q: "Do you take speaking or pitching invitations?", a: "Yes, absolutely. Get in touch." },
+    { q: "Can churches or youth groups ask you for help?", a: "Yes! I'm glad to help with tech, photography or mentoring." },
   ],
 
   /* Absolute origin, used to build the share links and OG tags baked into
